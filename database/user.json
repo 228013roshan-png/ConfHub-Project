@@ -1,0 +1,33 @@
+{
+  "users": [
+    {
+      "id": "usr-admin-01",
+      "name": "Academic Chair (Admin)",
+      "email": "roshankc@admin.com",
+      "password": "admin123",
+      "role": "admin",
+      "token": "cfh_tok_admin_7f9c2d1b84e3a502",
+      "designation": "Conference Chair & Program Director",
+      "institution": "Central Academic Board / ConfHub Governance",
+      "domains": [
+        "Academic Administration",
+        "AI Governance",
+        "Curriculum Review"
+      ],
+      "status": "Active",
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "lastLogin": "2026-09-03T03:00:00.000Z",
+      "permissions": [
+        "manage_conferences",
+        "manage_papers",
+        "assign_reviewers",
+        "accept_reject_manuscripts",
+        "manage_schedule",
+        "view_financials",
+        "export_metadata"
+      ],
+      "submittedPapers": [],
+      "tickets": []
+    }
+  ]
+}

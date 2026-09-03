@@ -1,0 +1,8 @@
+{
+  "name": "Remix ConfHub - Conference Management System",
+  "description": "SaaS Conference Management System with Peer-Review, ticketing, eSewa/Khalti payment simulators, scheduling, certificate auto-generation, and DOAJ/Scopus XML indexing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
