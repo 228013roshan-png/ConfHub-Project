@@ -1146,8 +1146,6 @@ export function LandingPage({
                   {filteredSchedule.map((item) => {
                     const itemConf = confMap.get(item.conferenceId);
                     const confTitle = itemConf?.title || "Academic Conference";
-                    const isSaved = savedSessionIds.includes(item.id);
-                    const isExpanded = expandedSessionId === item.id;
 
                     return (
                       <div
@@ -1211,111 +1209,7 @@ export function LandingPage({
                             </div>
 
                           </div>
-
-                          {/* Action Buttons */}
-                          <div className="flex flex-wrap items-center gap-2 shrink-0 self-start">
-                            
-                            {/* Bookmark Button */}
-                            <button
-                              onClick={() => toggleSaveSession(item.id)}
-                              className={`p-2 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer border ${
-                                isSaved
-                                  ? "bg-amber-50 text-amber-700 border-amber-300 shadow-2xs font-bold"
-                                  : "bg-white hover:bg-slate-100 text-slate-600 border-slate-200"
-                              }`}
-                              title={isSaved ? "Remove from personal agenda" : "Bookmark this session"}
-                            >
-                              {isSaved ? (
-                                <>
-                                  <BookmarkCheck className="w-4 h-4 text-amber-600" />
-                                  <span className="text-[11px] font-bold text-amber-700">Saved</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Bookmark className="w-4 h-4 text-slate-400" />
-                                  <span className="text-[11px]">Save</span>
-                                </>
-                              )}
-                            </button>
-
-                            {/* Add to Calendar (.ics download) */}
-                            <button
-                              onClick={() => exportSessionICS(item, confTitle)}
-                              className="p-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 flex items-center space-x-1.5 transition-colors cursor-pointer"
-                              title="Download .ics Calendar event file"
-                            >
-                              <Download className="w-3.5 h-3.5 text-slate-500" />
-                              <span className="text-[11px]">.ICS</span>
-                            </button>
-
-                            {/* Google Calendar Link */}
-                            <a
-                              href={getGoogleCalendarUrl(item, confTitle)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="p-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 flex items-center space-x-1.5 transition-colors cursor-pointer"
-                              title="Add to Google Calendar"
-                            >
-                              <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                              <span className="text-[11px] hidden sm:inline">Google Cal</span>
-                            </a>
-
-                            {/* Expand Details Toggle */}
-                            <button
-                              onClick={() => setExpandedSessionId(isExpanded ? null : item.id)}
-                              className="p-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-xs border border-slate-200 transition-colors cursor-pointer"
-                              title="View full session breakdown"
-                            >
-                              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            </button>
-
-                          </div>
-
                         </div>
-
-                        {/* Collapsible Expanded Details Drawer */}
-                        {isExpanded && (
-                          <div className="mt-3 p-4 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-3 animate-fadeIn">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-600">
-                              <div>
-                                <span className="block text-[10px] font-mono font-bold text-slate-400 uppercase">Target Conference</span>
-                                <span className="font-semibold text-slate-800">{confTitle}</span>
-                              </div>
-                              <div>
-                                <span className="block text-[10px] font-mono font-bold text-slate-400 uppercase">Presentation Hall</span>
-                                <span className="font-semibold text-slate-800">{item.room}</span>
-                              </div>
-                              <div>
-                                <span className="block text-[10px] font-mono font-bold text-slate-400 uppercase">Session Format</span>
-                                <span className="font-semibold text-slate-800">{item.type}</span>
-                              </div>
-                            </div>
-
-                            <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-3">
-                              <span className="text-slate-500 text-[11px]">
-                                Conference venue access: Delegates must present an official badge or registration pass at {item.room}.
-                              </span>
-
-                              {itemConf && (
-                                <button
-                                  onClick={() => {
-                                    if (!isLoggedIn) {
-                                      onNavigate("login");
-                                    } else {
-                                      setSelectedTicketConfId(itemConf.id);
-                                      switchTab("tickets");
-                                    }
-                                  }}
-                                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-semibold flex items-center space-x-1.5 shadow-2xs cursor-pointer transition-colors"
-                                >
-                                  <Ticket className="w-3.5 h-3.5" />
-                                  <span>{isLoggedIn ? `Get Pass for ${itemConf.title.slice(0, 20)}...` : `Log In to Get Pass`}</span>
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
                       </div>
                     );
                   })}
