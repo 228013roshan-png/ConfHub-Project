@@ -27,5 +27,4 @@ router.post(
   validateRequiredFields(["status"]),
   PaperController.updateStatus
 );
-
 export default router;

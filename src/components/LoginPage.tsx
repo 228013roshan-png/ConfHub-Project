@@ -22,12 +22,17 @@ interface LoginPageProps {
 }
 
 export function LoginPage({ reviewers, onNavigate, onLoginSuccess, defaultRole, currentUser, onLogout }: LoginPageProps) {
-  const [role, setRole] = useState<UserRole>(defaultRole || "author");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [loading, setLoading] = useState(false);
+ const [role, setRole] = useState<UserRole>(defaultRole || "author");
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const [errorMsg, setErrorMsg] = useState("");
+const [loading, setLoading] = useState(false);
 
+const [requiresVerification, setRequiresVerification] = useState(false);
+const [verificationCode, setVerificationCode] = useState("");
+const [verificationEmail, setVerificationEmail] = useState("");
+const [verificationLoading, setVerificationLoading] = useState(false);
+const [resendLoading, setResendLoading] = useState(false);
   if (currentUser) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-center items-center p-4">
@@ -88,63 +93,186 @@ export function LoginPage({ reviewers, onNavigate, onLoginSuccess, defaultRole, 
 
 
 
-  const handleLoginSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrorMsg("");
+  const handleLoginSubmit = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
 
-    if (!email) {
-      setErrorMsg("Please enter your academic registration email.");
+  setErrorMsg("");
+
+  if (!email) {
+    setErrorMsg(
+      "Please enter your academic registration email."
+    );
+    return;
+  }
+
+  if (!password) {
+    setErrorMsg(
+      "Please enter your account password."
+    );
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await fetch("/api/users/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email.trim().toLowerCase(),
+        password: password.trim(),
+        role,
+      }),
+    });
+
+    const resData = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        resData.error ||
+          "Authentication failed. Please verify your credentials."
+      );
+    }
+
+    if (resData.requiresVerification) {
+      setVerificationEmail(
+        resData.email || email.trim().toLowerCase()
+      );
+
+      setVerificationCode("");
+      setRequiresVerification(true);
+
       return;
     }
-    if (!password) {
-      setErrorMsg("Please enter your account password.");
-      return;
-    }
 
-    setLoading(true);
+    throw new Error(
+      "Authentication verification was not started."
+    );
+  } catch (err: any) {
+    console.error("Login error:", err);
 
-    try {
-      // Direct login against data.json
-      const res = await fetch("/api/users/login", {
+    setErrorMsg(
+      err.message ||
+        "Failed to log in. Please check your credentials."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+const handleVerifyCode = async (
+  e: React.FormEvent
+) => {
+  e.preventDefault();
+
+  setErrorMsg("");
+
+  if (verificationCode.length !== 6) {
+    setErrorMsg(
+      "Please enter the 6-digit verification code."
+    );
+    return;
+  }
+
+  setVerificationLoading(true);
+
+  try {
+    const res = await fetch(
+      "/api/users/verify-code",
+      {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: verificationEmail,
+          code: verificationCode,
+          role,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data.error ||
+          "Invalid verification code."
+      );
+    }
+
+    const authenticatedUser = data.user;
+
+    onLoginSuccess({
+      name: authenticatedUser.name,
+      email: authenticatedUser.email.toLowerCase(),
+      role: authenticatedUser.role,
+      token:
+        authenticatedUser.token ||
+        data.token,
+    });
+  } catch (err: any) {
+    console.error(
+      "Verification error:",
+      err
+    );
+
+    setErrorMsg(
+      err.message ||
+        "Unable to verify the code."
+    );
+  } finally {
+    setVerificationLoading(false);
+  }
+};
+
+const handleResendCode = async () => {
+  setErrorMsg("");
+  setResendLoading(true);
+
+  try {
+    const res = await fetch(
+      "/api/users/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           password: password.trim(),
-          role: role
-        })
-      });
-
-      let resData: any = {};
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        resData = await res.json();
-      } else {
-        const rawText = await res.text();
-        console.warn("Unexpected non-JSON response from /api/users/login:", rawText.slice(0, 150));
-        resData = { error: "Authentication service is currently reconciling. Please try again in a moment." };
+          role,
+        }),
       }
+    );
 
-      if (!res.ok) {
-        throw new Error(resData.error || "Authentication failed. Please verify your credentials.");
-      }
+    const data = await res.json();
 
-      const authenticatedUser = resData.user;
-      
-      onLoginSuccess({
-        name: authenticatedUser.name,
-        email: authenticatedUser.email.toLowerCase(),
-        role: authenticatedUser.role,
-        token: authenticatedUser.token || resData.token,
-      });
-
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setErrorMsg(err.message || "Failed to log in. Please check your credentials.");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      throw new Error(
+        data.error ||
+          "Unable to resend verification code."
+      );
     }
-  };
+
+    setVerificationCode("");
+
+    setErrorMsg(
+      "A new verification code has been sent."
+    );
+  } catch (err: any) {
+    setErrorMsg(
+      err.message ||
+        "Unable to resend verification code."
+    );
+  } finally {
+    setResendLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-center items-center p-4 selection:bg-blue-600 selection:text-white">
@@ -225,67 +353,175 @@ export function LoginPage({ reviewers, onNavigate, onLoginSuccess, defaultRole, 
             </div>
           </div>
 
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
-            
-            {errorMsg && (
-              <div className="p-3 bg-red-50 border border-red-100 text-red-650 text-xs font-semibold rounded-lg flex items-start space-x-2 animate-pulse">
-                <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
+          {requiresVerification ? (
+  <form
+    onSubmit={handleVerifyCode}
+    className="space-y-5"
+  >
+    <div className="text-center pb-2">
+      <div className="mx-auto w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
+        <Mail className="w-5 h-5 text-blue-600" />
+      </div>
 
-            {/* Email field */}
-            <div className="space-y-1">
-              <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input
-                  type="email"
-                  placeholder={role === "student" ? "e.g. student@university.edu" : "e.g. name@domain.com"}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 bg-white rounded-lg outline-none focus:border-blue-500 transition-colors text-slate-800"
-                  required
-                />
-              </div>
-            </div>
+      <h3 className="mt-3 text-sm font-bold text-slate-900">
+        Check your email
+      </h3>
 
-            {/* Password field */}
-            <div className="space-y-1">
-              <div className="flex justify-between items-center">
-                <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400">
-                  Password
-                </label>
-                <span className="text-[10px] text-blue-600 hover:underline cursor-pointer">
-                  Forgot?
-                </span>
-              </div>
-              <div className="relative">
-                <Lock className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
-                <input
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 bg-white rounded-lg outline-none focus:border-blue-500 transition-colors text-slate-800"
-                  required
-                />
-              </div>
-            </div>
+      <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
+        We sent a 6-digit verification code to
+      </p>
 
-            {/* Submit btn */}
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-2 px-4 ${role === "student" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-600 hover:bg-blue-700"} disabled:bg-blue-400 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex justify-center items-center shadow-xs`}
-            >
-              {loading ? "Checking details..." : role === "student" ? "Log In as Student" : "Log In"}
-            </button>
+      <p className="mt-1 text-xs font-semibold text-slate-800">
+        {verificationEmail}
+      </p>
+    </div>
 
-          </form>
+    {errorMsg && (
+      <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs font-semibold rounded-lg flex items-start space-x-2">
+        <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+        <span>{errorMsg}</span>
+      </div>
+    )}
 
+    <div className="space-y-1">
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        Verification Code
+      </label>
+
+      <input
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={6}
+        value={verificationCode}
+        onChange={(e) => {
+          setVerificationCode(
+            e.target.value
+              .replace(/\D/g, "")
+              .slice(0, 6)
+          );
+        }}
+        placeholder="000000"
+        className="w-full px-3 py-3 text-center text-lg tracking-[0.5em] border border-slate-200 bg-white rounded-lg outline-none focus:border-blue-500 transition-colors text-slate-800 font-semibold"
+        required
+      />
+    </div>
+
+    <button
+      type="submit"
+      disabled={
+        verificationCode.length !== 6 ||
+        verificationLoading
+      }
+      className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex justify-center items-center"
+    >
+      {verificationLoading
+        ? "Verifying..."
+        : "Verify & Continue"}
+    </button>
+
+    <div className="text-center space-y-2">
+      <button
+        type="button"
+        onClick={handleResendCode}
+        disabled={resendLoading}
+        className="text-xs text-blue-600 hover:text-blue-800 font-semibold disabled:text-slate-400"
+      >
+        {resendLoading
+          ? "Sending..."
+          : "Resend verification code"}
+      </button>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => {
+            setRequiresVerification(false);
+            setVerificationCode("");
+            setErrorMsg("");
+          }}
+          className="text-xs text-slate-400 hover:text-slate-700"
+        >
+          Back to login
+        </button>
+      </div>
+    </div>
+  </form>
+) : (
+  <form
+    onSubmit={handleLoginSubmit}
+    className="space-y-4"
+  >
+    {errorMsg && (
+      <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs font-semibold rounded-lg flex items-start space-x-2">
+        <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+        <span>{errorMsg}</span>
+      </div>
+    )}
+
+    <div className="space-y-1">
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        Email Address
+      </label>
+
+      <div className="relative">
+        <Mail className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+
+        <input
+          type="email"
+          placeholder={
+            role === "student"
+              ? "e.g. student@university.edu"
+              : "e.g. name@domain.com"
+          }
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
+          className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 bg-white rounded-lg outline-none focus:border-blue-500 transition-colors text-slate-800"
+          required
+        />
+      </div>
+    </div>
+
+    <div className="space-y-1">
+      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        Password
+      </label>
+
+      <div className="relative">
+        <Lock className="absolute left-3 top-2.5 w-4 h-4 text-slate-400" />
+
+        <input
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) =>
+            setPassword(e.target.value)
+          }
+          className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 bg-white rounded-lg outline-none focus:border-blue-500 transition-colors text-slate-800"
+          required
+        />
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      disabled={loading}
+      className={`w-full py-2 px-4 ${
+        role === "student"
+          ? "bg-emerald-600 hover:bg-emerald-700"
+          : "bg-blue-600 hover:bg-blue-700"
+      } disabled:bg-blue-400 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer flex justify-center items-center shadow-xs`}
+    >
+      {loading
+        ? "Checking details..."
+        : role === "student"
+        ? "Log In as Student"
+        : "Log In"}
+    </button>
+  </form>
+)}
           {/* Join Link */}
           <div className="text-center pt-2">
             {role === "admin" ? (

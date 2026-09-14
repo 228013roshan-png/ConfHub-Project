@@ -1,6 +1,19 @@
 import { Request, Response } from "express";
-import { getUserData, saveUserData, getReviewers, saveReviewers } from "../services/dbService";
+import {
+  getUserData,
+  saveUserData,
+  getReviewers,
+  saveReviewers,
+} from "../services/dbService";
 import { StoredUser } from "../types";
+import {
+  generateOtp,
+  verifyOtp,
+  clearOtp,
+} from "../services/otpService";
+import {
+  sendVerificationCode,
+} from "../services/emailService";
 
 export class AuthController {
   /**
@@ -11,9 +24,12 @@ export class AuthController {
     try {
       const data = getUserData();
       const safeUsers = data.users.map(({ password, ...rest }) => rest);
+
       return res.json({ users: safeUsers });
     } catch (error: any) {
-      return res.status(500).json({ error: error.message || "Failed to retrieve users." });
+      return res.status(500).json({
+        error: error.message || "Failed to retrieve users.",
+      });
     }
   }
 
@@ -22,31 +38,59 @@ export class AuthController {
    * Register a new user and persist directly to database/user.json
    */
   static register(req: Request, res: Response) {
-    const { name, email, password, role, institution, domains, designation } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      institution,
+      domains,
+      designation,
+    } = req.body;
 
     if (!name || !email || !role || !password) {
-      return res.status(400).json({ error: "Name, email, password, and role are required." });
+      return res.status(400).json({
+        error: "Name, email, password, and role are required.",
+      });
     }
 
     if (role === "admin") {
       return res.status(403).json({
-        error: "Administrator registration is disabled. Only existing administrators may log in.",
+        error:
+          "Administrator registration is disabled. Only existing administrators may log in.",
       });
     }
 
     const data = getUserData();
     const normalizedEmail = email.trim().toLowerCase();
 
-    const existing = data.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+    const existing = data.users.find(
+      (u) => u.email.toLowerCase() === normalizedEmail
+    );
+
     if (existing) {
       return res.status(400).json({
-        error: "An account with this email is already registered. Please log in or use another email.",
+        error:
+          "An account with this email is already registered. Please log in or use another email.",
       });
     }
 
-    const roleClean = role === "reviewer" || role === "author" || role === "student" ? role : "student";
-    const userDomains = Array.isArray(domains) ? domains : domains ? [domains] : [];
-    const assignedToken = `cfh_tok_${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`;
+    const roleClean =
+      role === "reviewer" ||
+      role === "author" ||
+      role === "student"
+        ? role
+        : "student";
+
+    const userDomains = Array.isArray(domains)
+      ? domains
+      : domains
+      ? [domains]
+      : [];
+
+    const assignedToken = `cfh_tok_${Math.random()
+      .toString(36)
+      .substring(2, 10)}${Date.now().toString(36)}`;
 
     const newUser: StoredUser = {
       id: `usr-${roleClean.slice(0, 3)}-${Date.now()}`,
@@ -55,6 +99,7 @@ export class AuthController {
       password: password.trim(),
       role: roleClean,
       token: assignedToken,
+
       institution: institution
         ? institution.trim()
         : roleClean === "reviewer"
@@ -62,31 +107,22 @@ export class AuthController {
         : roleClean === "student"
         ? "University / College"
         : "Research Institution",
+
       designation: designation
         ? designation.trim()
         : roleClean === "reviewer"
         ? "Peer Reviewer"
-        : roleClean === "admin"
-        ? "Academic Chair"
         : roleClean === "student"
         ? "Student Delegate / Researcher"
         : "Author / Presenter",
+
       domains: userDomains,
       status: "Active",
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
+
       permissions:
-        roleClean === "admin"
-          ? [
-              "manage_conferences",
-              "manage_papers",
-              "assign_reviewers",
-              "accept_reject_manuscripts",
-              "manage_schedule",
-              "view_financials",
-              "export_metadata",
-            ]
-          : roleClean === "reviewer"
+        roleClean === "reviewer"
           ? [
               "view_assigned_double_blind_papers",
               "submit_rubric_evaluations",
@@ -105,6 +141,7 @@ export class AuthController {
               "purchase_conference_tickets",
               "view_personal_schedule",
             ],
+
       submittedPapers: [],
       tickets: [],
     };
@@ -116,7 +153,11 @@ export class AuthController {
     if (roleClean === "reviewer") {
       try {
         const reviewerData = getReviewers();
-        const reviewerExists = reviewerData.reviewers.some((r) => r.email.toLowerCase() === normalizedEmail);
+
+        const reviewerExists = reviewerData.reviewers.some(
+          (r) => r.email.toLowerCase() === normalizedEmail
+        );
+
         if (!reviewerExists) {
           reviewerData.reviewers.push({
             id: `rev-${Date.now()}`,
@@ -125,16 +166,24 @@ export class AuthController {
             domains:
               newUser.domains && newUser.domains.length > 0
                 ? newUser.domains
-                : ["Artificial Intelligence", "General Computer Science"],
+                : [
+                    "Artificial Intelligence",
+                    "General Computer Science",
+                  ],
           });
+
           saveReviewers(reviewerData.reviewers);
         }
       } catch (e) {
-        console.error("Error syncing reviewer to reviewer.json:", e);
+        console.error(
+          "Error syncing reviewer to reviewer.json:",
+          e
+        );
       }
     }
 
     const { password: _, ...safeUser } = newUser;
+
     return res.status(201).json({
       user: safeUser,
       token: newUser.token,
@@ -144,52 +193,150 @@ export class AuthController {
 
   /**
    * POST /api/users/login
-   * Authenticate user against database/user.json credentials
+   *
+   * Step 1 of authentication:
+   * - Validate email
+   * - Validate password
+   * - Validate role
+   * - Generate OTP
+   * - Send OTP to user's email
+   *
+   * The actual login token is NOT returned until the OTP
+   * has been successfully verified.
    */
-  static login(req: Request, res: Response) {
+  static async login(req: Request, res: Response) {
     const { email, password, role } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required to log in." });
+      return res.status(400).json({
+        error: "Email and password are required to log in.",
+      });
     }
 
     const data = getUserData();
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = data.users.find((u) => u.email.toLowerCase() === normalizedEmail);
+    const user = data.users.find(
+      (u) => u.email.toLowerCase() === normalizedEmail
+    );
 
     if (!user) {
       return res.status(401).json({
-        error: "Account not found. Please sign up to create your account",
+        error:
+          "Account not found. Please sign up to create your account.",
       });
     }
 
-    // Password verification
     if (user.password && user.password !== password.trim()) {
-      return res.status(401).json({ error: "Invalid password for this account. Please verify your password." });
+      return res.status(401).json({
+        error: "Invalid password for this account.",
+      });
     }
 
-    // Check role match if requested
     if (role && user.role !== role) {
       return res.status(403).json({
-        error: `Access Denied: This account is registered with role '${user.role.toUpperCase()}', but you attempted to log in as '${role.toUpperCase()}'. Please select the '${user.role}' role.`,
+        error: `Access denied. This account is registered with role '${user.role}', but you attempted to log in as '${role}'.`,
       });
     }
 
-    // Ensure user has an assigned token
-    if (!user.token) {
-      user.token = `cfh_tok_${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`;
+    try {
+      const code = generateOtp(user.email);
+
+      await sendVerificationCode(user.email, code);
+
+      return res.json({
+        requiresVerification: true,
+        email: user.email,
+        role: user.role,
+        message:
+          "A verification code has been sent to your email.",
+      });
+    } catch (error) {
+      console.error(
+        "Failed to send verification email:",
+        error
+      );
+
+      clearOtp(user.email);
+
+      return res.status(500).json({
+        error:
+          "Unable to send verification email. Please try again.",
+      });
+    }
+  }
+
+  /**
+   * POST /api/users/verify-code
+   *
+   * Step 2 of authentication:
+   * - Verify the OTP
+   * - Find the user
+   * - Generate/retain login token
+   * - Update lastLogin
+   * - Return authenticated user
+   */
+  static async verifyCode(req: Request, res: Response) {
+    const { email, code, role } = req.body;
+
+    if (!email || !code) {
+      return res.status(400).json({
+        error:
+          "Email and verification code are required.",
+      });
     }
 
-    // Update lastLogin timestamp
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const valid = verifyOtp(
+      normalizedEmail,
+      code.trim()
+    );
+
+    if (!valid) {
+      return res.status(401).json({
+        error: "Invalid or expired verification code.",
+      });
+    }
+
+    const data = getUserData();
+
+    const user = data.users.find(
+      (u) => u.email.toLowerCase() === normalizedEmail
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        error: "User account could not be found.",
+      });
+    }
+
+    if (role && user.role !== role) {
+      return res.status(403).json({
+        error:
+          "The selected role does not match this account.",
+      });
+    }
+
+    if (!user.token) {
+      user.token = `cfh_tok_${Math.random()
+        .toString(36)
+        .substring(2, 10)}${Date.now().toString(36)}`;
+    }
+
     user.lastLogin = new Date().toISOString();
+
     saveUserData(data);
 
-    const { password: _, ...safeUser } = user;
+    const {
+      password: _,
+      ...safeUser
+    } = user;
+
     return res.json({
       user: safeUser,
       token: user.token,
-      message: "Login successful",
+      message: "Authentication successful.",
     });
   }
 }

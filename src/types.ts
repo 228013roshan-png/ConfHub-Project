@@ -32,6 +32,9 @@ export interface Paper {
   assignedReviewerId: string | null;
   fileSize: string;
   submittedAt: string;
+
+  rejectionReason?: string;
+  rejectedAt?: string;
 }
 
 export interface Reviewer {

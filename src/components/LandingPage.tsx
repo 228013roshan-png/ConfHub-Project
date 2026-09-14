@@ -207,40 +207,58 @@ export function LandingPage({
       if (selectedScheduleConfId !== "all" && item.conferenceId !== selectedScheduleConfId) {
         return false;
       }
+
       // 2. Type filter
       if (scheduleFilter !== "All" && item.type !== scheduleFilter) {
         return false;
       }
+
       // 3. Room filter
       if (selectedScheduleRoom !== "All" && item.room !== selectedScheduleRoom) {
         return false;
       }
+
       // 4. Saved only filter
       if (showSavedOnly && !savedSessionIds.includes(item.id)) {
         return false;
       }
+
       // 5. Search query
       if (scheduleSearch.trim()) {
         const query = scheduleSearch.toLowerCase();
         const confTitle = confMap.get(item.conferenceId)?.title.toLowerCase() || "";
-        const matches = item.sessionTitle.toLowerCase().includes(query) ||
-                        item.speaker.toLowerCase().includes(query) ||
-                        item.room.toLowerCase().includes(query) ||
-                        confTitle.includes(query);
+        const matches =
+          item.sessionTitle.toLowerCase().includes(query) ||
+          item.speaker.toLowerCase().includes(query) ||
+          item.room.toLowerCase().includes(query) ||
+          confTitle.includes(query);
+
         if (!matches) return false;
       }
+
       return true;
     });
-  }, [schedule, selectedScheduleConfId, scheduleFilter, selectedScheduleRoom, showSavedOnly, savedSessionIds, scheduleSearch, confMap]);
+  }, [
+    schedule,
+    selectedScheduleConfId,
+    scheduleFilter,
+    selectedScheduleRoom,
+    showSavedOnly,
+    savedSessionIds,
+    scheduleSearch,
+    confMap
+  ]);
 
   // Grouped by Room for "Halls & Tracks View"
   const groupedByRoom = React.useMemo(() => {
     const map: { [room: string]: ScheduleItem[] } = {};
+
     filteredSchedule.forEach(item => {
       const room = item.room || "General Hall";
       if (!map[room]) map[room] = [];
       map[room].push(item);
     });
+
     return map;
   }, [filteredSchedule]);
 
@@ -252,15 +270,21 @@ export function LandingPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
           
           {/* Logo Brand */}
-          <div className="flex items-center space-x-3 select-none cursor-pointer" onClick={() => switchTab("home")}>
+          <div
+            className="flex items-center space-x-3 select-none cursor-pointer"
+            onClick={() => switchTab("home")}
+          >
             <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-xs">
               <div className="w-4 h-4 bg-white rounded-sm rotate-45"></div>
             </div>
+
             <div>
               <h1 className="font-bold text-base text-slate-800 tracking-tight leading-none">
                 <span>ConfHub</span>
               </h1>
-              <p className="text-[10px] text-slate-400 mt-1 tracking-tight font-medium">Easy Conference Tool</p>
+              <p className="text-[10px] text-slate-400 mt-1 tracking-tight font-medium">
+                Easy Conference Tool
+              </p>
             </div>
           </div>
 
@@ -327,20 +351,25 @@ export function LandingPage({
             {isLoggedIn && currentUser ? (
               <div className="flex items-center space-x-3">
                 <div className="hidden sm:block text-right">
-                  <div className="flex items-center justify-end space-x-1.5">
-                    <span className={`block text-[10px] font-bold uppercase tracking-wider ${
-                      currentUser.role === "student" ? "text-emerald-600" : "text-slate-400"
-                    }`}>
-                      {currentUser.role === "student" ? "Student Delegate" : "Active Account"}
+                  <div className="flex items-center justify-end">
+                    <span
+                      className={`block text-[10px] font-bold uppercase tracking-wider ${
+                        currentUser.role === "student"
+                          ? "text-emerald-600"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {currentUser.role === "student"
+                        ? "Student Delegate"
+                        : "Active Account"}
                     </span>
-                    {currentUser.token && (
-                      <span className="text-[9px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1 py-0.2 rounded" title={`Session Token: ${currentUser.token}`}>
-                        Token: {currentUser.token.slice(0, 10)}...
-                      </span>
-                    )}
                   </div>
-                  <span className="block text-xs font-semibold text-slate-700 font-mono">{currentUser.email}</span>
+
+                  <span className="block text-xs font-semibold text-slate-700 font-mono">
+                    {currentUser.email}
+                  </span>
                 </div>
+
                 {currentUser.role === "student" ? (
                   <button
                     onClick={() => switchTab("schedule")}
@@ -358,6 +387,7 @@ export function LandingPage({
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 )}
+
                 <button
                   onClick={onLogout}
                   className="px-3 py-2 border border-slate-200 text-slate-500 hover:text-slate-800 text-xs font-medium rounded-lg transition-colors cursor-pointer"
@@ -373,6 +403,7 @@ export function LandingPage({
                 >
                   Log In
                 </button>
+
                 <button
                   onClick={() => onNavigate("signup")}
                   className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg shadow-2xs transition-colors cursor-pointer"
@@ -389,31 +420,42 @@ export function LandingPage({
           <button
             onClick={() => switchTab("home")}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap text-xs font-semibold cursor-pointer ${
-              activeTab === "home" ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold" : "text-slate-600 hover:text-slate-900"
+              activeTab === "home"
+                ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Home
           </button>
+
           <button
             onClick={() => switchTab("features")}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap text-xs font-semibold cursor-pointer ${
-              activeTab === "features" ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold" : "text-slate-600 hover:text-slate-900"
+              activeTab === "features"
+                ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Features
           </button>
+
           <button
             onClick={() => switchTab("schedule")}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap text-xs font-semibold cursor-pointer ${
-              activeTab === "schedule" ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold" : "text-slate-600 hover:text-slate-900"
+              activeTab === "schedule"
+                ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Schedule
           </button>
+
           <button
             onClick={() => switchTab("tickets")}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap text-xs font-semibold cursor-pointer ${
-              activeTab === "tickets" ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold" : "text-slate-600 hover:text-slate-900"
+              activeTab === "tickets"
+                ? "bg-blue-50 text-blue-600 border border-blue-100 font-bold"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
             Tickets
@@ -435,8 +477,11 @@ export function LandingPage({
                 <div className="max-w-3xl mx-auto space-y-4">
                   <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-none">
                     Simple Academic <br />
-                    <span className="text-blue-600 bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-sans">Conference Management</span>
+                    <span className="text-blue-600 bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-sans">
+                      Conference Management
+                    </span>
                   </h1>
+
                   <p className="text-slate-500 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
                     Submit papers, write peer reviews, create schedules, and buy attendee passes simply and quickly.
                   </p>
@@ -451,6 +496,7 @@ export function LandingPage({
                     <ShieldCheck className="w-4 h-4" />
                     <span>Admin Portal</span>
                   </button>
+
                   <button
                     onClick={() => onNavigate(isLoggedIn ? "app" : "login", "reviewer")}
                     className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-lg flex items-center space-x-2 transition-all cursor-pointer shadow-xs hover:shadow-md"
@@ -458,6 +504,7 @@ export function LandingPage({
                     <BookOpen className="w-4 h-4" />
                     <span>Reviewer Portal</span>
                   </button>
+
                   <button
                     onClick={() => onNavigate(isLoggedIn ? "app" : "login", "author")}
                     className="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:border-slate-300 text-xs font-semibold rounded-lg flex items-center space-x-2 transition-all cursor-pointer shadow-2xs"
@@ -474,9 +521,14 @@ export function LandingPage({
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div>
-                    <span className="text-[10px] font-mono font-bold tracking-wider text-blue-600 uppercase">Platform Overview</span>
-                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Built for Modern Academic Excellence</h2>
+                    <span className="text-[10px] font-mono font-bold tracking-wider text-blue-600 uppercase">
+                      Platform Overview
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+                      Built for Modern Academic Excellence
+                    </h2>
                   </div>
+
                   <button
                     onClick={() => switchTab("features")}
                     className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center space-x-1 cursor-pointer"
@@ -491,7 +543,11 @@ export function LandingPage({
                     <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-sm text-slate-900">Double-Blind Peer Review</h3>
+
+                    <h3 className="font-bold text-sm text-slate-900">
+                      Double-Blind Peer Review
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Author identities remain completely hidden from reviewers to ensure objective evaluations.
                     </p>
@@ -501,7 +557,11 @@ export function LandingPage({
                     <div className="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600">
                       <Calendar className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-sm text-slate-900">Live Interactive Schedule</h3>
+
+                    <h3 className="font-bold text-sm text-slate-900">
+                      Live Interactive Schedule
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Organizers can auto-allocate accepted research papers directly into presentation slots.
                     </p>
@@ -511,7 +571,11 @@ export function LandingPage({
                     <div className="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600">
                       <CreditCard className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-sm text-slate-900">Local &amp; Global Ticketing</h3>
+
+                    <h3 className="font-bold text-sm text-slate-900">
+                      Local &amp; Global Ticketing
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Instant pass registration using eSewa, Khalti, or international payment gateways.
                     </p>
@@ -532,9 +596,11 @@ export function LandingPage({
                 <span className="text-[10px] font-mono font-bold tracking-wider text-blue-600 uppercase bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
                   Platform Core Features
                 </span>
+
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
                   Everything You Need to Manage Conferences
                 </h1>
+
                 <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
                   ConfHub provides dedicated workflows for administrators, reviewers, and authors in a clean, consistent interface.
                 </p>
@@ -549,10 +615,15 @@ export function LandingPage({
                     <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">Double-Blind Peer Review</h3>
+
+                    <h3 className="font-bold text-base text-slate-900">
+                      Double-Blind Peer Review
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Preserves strict anonymity. Author credentials and affiliations are automatically scrubbed during review, preventing potential bias.
                     </p>
+
                     <ul className="space-y-1.5 pt-2 text-xs text-slate-600">
                       <li className="flex items-center space-x-2">
                         <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />
@@ -568,6 +639,7 @@ export function LandingPage({
                       </li>
                     </ul>
                   </div>
+
                   <button
                     onClick={() => onNavigate("login", "reviewer")}
                     className="w-full py-2 bg-white border border-slate-200 text-slate-700 hover:text-blue-600 hover:border-blue-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
@@ -582,10 +654,15 @@ export function LandingPage({
                     <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
                       <Zap className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">AI Keyword Abstract Matcher</h3>
+
+                    <h3 className="font-bold text-base text-slate-900">
+                      AI Keyword Abstract Matcher
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Automatically scans submitted paper abstracts and tags relevant research topics to route papers to the best-suited reviewer expert.
                     </p>
+
                     <ul className="space-y-1.5 pt-2 text-xs text-slate-600">
                       <li className="flex items-center space-x-2">
                         <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
@@ -601,6 +678,7 @@ export function LandingPage({
                       </li>
                     </ul>
                   </div>
+
                   <button
                     onClick={() => onNavigate("login", "admin")}
                     className="w-full py-2 bg-white border border-slate-200 text-slate-700 hover:text-emerald-600 hover:border-emerald-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
@@ -615,10 +693,15 @@ export function LandingPage({
                     <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600">
                       <Calendar className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">Dynamic Schedule Builder</h3>
+
+                    <h3 className="font-bold text-base text-slate-900">
+                      Dynamic Schedule Builder
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Easily build, reorder, and assign presentation sessions. Directly pulls accepted papers into allocated conference time slots.
                     </p>
+
                     <ul className="space-y-1.5 pt-2 text-xs text-slate-600">
                       <li className="flex items-center space-x-2">
                         <Check className="w-3.5 h-3.5 text-purple-600 shrink-0" />
@@ -634,6 +717,7 @@ export function LandingPage({
                       </li>
                     </ul>
                   </div>
+
                   <button
                     onClick={() => switchTab("schedule")}
                     className="w-full py-2 bg-white border border-slate-200 text-slate-700 hover:text-purple-600 hover:border-purple-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
@@ -648,10 +732,15 @@ export function LandingPage({
                     <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
                       <Database className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">Scopus &amp; DOAJ Metadata Exporter</h3>
+
+                    <h3 className="font-bold text-base text-slate-900">
+                      Scopus &amp; DOAJ Metadata Exporter
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Generate standardized XML and Schema.org JSON metadata exports ready for academic indexers and search discovery platforms.
                     </p>
+
                     <ul className="space-y-1.5 pt-2 text-xs text-slate-600">
                       <li className="flex items-center space-x-2">
                         <Check className="w-3.5 h-3.5 text-amber-600 shrink-0" />
@@ -667,6 +756,7 @@ export function LandingPage({
                       </li>
                     </ul>
                   </div>
+
                   <button
                     onClick={() => switchTab("features")}
                     className="w-full py-2 bg-white border border-slate-200 text-slate-700 hover:text-amber-600 hover:border-amber-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
@@ -681,10 +771,15 @@ export function LandingPage({
                     <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center text-teal-600">
                       <CreditCard className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">Integrated Delegate Pass Ticketing</h3>
+
+                    <h3 className="font-bold text-base text-slate-900">
+                      Integrated Delegate Pass Ticketing
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Seamless checkout workflows supporting regional payment gateways (eSewa, Khalti) alongside standard credit card options.
                     </p>
+
                     <ul className="space-y-1.5 pt-2 text-xs text-slate-600">
                       <li className="flex items-center space-x-2">
                         <Check className="w-3.5 h-3.5 text-teal-600 shrink-0" />
@@ -700,6 +795,7 @@ export function LandingPage({
                       </li>
                     </ul>
                   </div>
+
                   <button
                     onClick={() => switchTab("tickets")}
                     className="w-full py-2 bg-white border border-slate-200 text-slate-700 hover:text-teal-600 hover:border-teal-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
@@ -714,10 +810,15 @@ export function LandingPage({
                     <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-600">
                       <Lock className="w-5 h-5" />
                     </div>
-                    <h3 className="font-bold text-base text-slate-900">Role-Based Security Locks</h3>
+
+                    <h3 className="font-bold text-base text-slate-900">
+                      Role-Based Security Locks
+                    </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Strict authentication access control ensuring users only view data authorized for their logged-in role (Admin, Reviewer, or Author).
                     </p>
+
                     <ul className="space-y-1.5 pt-2 text-xs text-slate-600">
                       <li className="flex items-center space-x-2">
                         <Check className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
@@ -733,6 +834,7 @@ export function LandingPage({
                       </li>
                     </ul>
                   </div>
+
                   <button
                     onClick={() => onNavigate("login")}
                     className="w-full py-2 bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 text-xs font-semibold rounded-lg transition-colors cursor-pointer text-center"
@@ -740,9 +842,7 @@ export function LandingPage({
                     Sign In to Portal
                   </button>
                 </div>
-
               </div>
-
             </div>
           </div>
         )}
@@ -759,6 +859,7 @@ export function LandingPage({
                     <CheckCircle2 className="w-4 h-4 text-white shrink-0" />
                     <span>{calendarNotification}</span>
                   </div>
+
                   <button 
                     onClick={() => setCalendarNotification(null)}
                     className="text-white/80 hover:text-white text-xs p-1"
@@ -775,6 +876,7 @@ export function LandingPage({
                     <Building2 className="w-3.5 h-3.5 text-blue-600" />
                     <span>Select Conference Timetable</span>
                   </span>
+
                   <span className="text-xs text-slate-500 font-medium">
                     {schedule.length} total session slots across {conferences.length} conferences
                   </span>
@@ -793,8 +895,11 @@ export function LandingPage({
                     }`}
                   >
                     <span>All Conferences</span>
+
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
-                      selectedScheduleConfId === "all" ? "bg-white/20 text-white" : "bg-white text-slate-600 border border-slate-200"
+                      selectedScheduleConfId === "all"
+                        ? "bg-white/20 text-white"
+                        : "bg-white text-slate-600 border border-slate-200"
                     }`}>
                       {schedule.length}
                     </span>
@@ -803,6 +908,7 @@ export function LandingPage({
                   {conferences.map((conf) => {
                     const count = schedule.filter(s => s.conferenceId === conf.id).length;
                     const isSelected = selectedScheduleConfId === conf.id;
+
                     return (
                       <button
                         key={conf.id}
@@ -817,8 +923,11 @@ export function LandingPage({
                         }`}
                       >
                         <span className="truncate max-w-[200px]">{conf.title}</span>
+
                         <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold ${
-                          isSelected ? "bg-white/20 text-white" : "bg-slate-100 text-slate-600"
+                          isSelected
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 text-slate-600"
                         }`}>
                           {count}
                         </span>
@@ -842,28 +951,36 @@ export function LandingPage({
                       }`}>
                         {selectedScheduleConf.status}
                       </span>
+
                       <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase rounded border border-blue-100 font-mono">
                         Active Program
                       </span>
+
                       <span className="text-xs text-slate-400 font-mono">
                         ID: {selectedScheduleConf.id.toUpperCase()}
                       </span>
                     </div>
 
-                    <h1 className="text-2xl font-bold text-slate-900">{selectedScheduleConf.title}</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">
+                      {selectedScheduleConf.title}
+                    </h1>
 
                     <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-0.5">
                       <span className="flex items-center space-x-1.5 font-medium">
                         <Calendar className="w-4 h-4 text-blue-600" />
                         <span>{selectedScheduleConf.date}</span>
                       </span>
+
                       <span className="flex items-center space-x-1.5 font-medium">
                         <MapPin className="w-4 h-4 text-blue-600" />
                         <span>{selectedScheduleConf.venue}</span>
                       </span>
+
                       <span className="flex items-center space-x-1.5 text-slate-400">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        <span>Submissions Due: <strong>{selectedScheduleConf.deadline}</strong></span>
+                        <span>
+                          Submissions Due: <strong>{selectedScheduleConf.deadline}</strong>
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -896,7 +1013,11 @@ export function LandingPage({
                     <div className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase rounded border border-blue-100 font-mono">
                       <span>All Conference Symposia</span>
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-900">Academic Programs &amp; Session Timetables</h1>
+
+                    <h1 className="text-2xl font-bold text-slate-900">
+                      Academic Programs &amp; Session Timetables
+                    </h1>
+
                     <p className="text-xs text-slate-500 max-w-xl">
                       Browse technical papers, keynote addresses, and workshops across all active conferences in one unified schedule.
                     </p>
@@ -904,18 +1025,34 @@ export function LandingPage({
 
                   <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 shrink-0">
                     <div className="text-center px-3">
-                      <span className="block font-mono text-lg font-bold text-slate-900">{conferences.length}</span>
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Conferences</span>
+                      <span className="block font-mono text-lg font-bold text-slate-900">
+                        {conferences.length}
+                      </span>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">
+                        Conferences
+                      </span>
                     </div>
+
                     <div className="w-px h-8 bg-slate-200" />
+
                     <div className="text-center px-3">
-                      <span className="block font-mono text-lg font-bold text-blue-600">{schedule.length}</span>
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Total Sessions</span>
+                      <span className="block font-mono text-lg font-bold text-blue-600">
+                        {schedule.length}
+                      </span>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">
+                        Total Sessions
+                      </span>
                     </div>
+
                     <div className="w-px h-8 bg-slate-200" />
+
                     <div className="text-center px-3">
-                      <span className="block font-mono text-lg font-bold text-emerald-600">{availableRooms.length - 1}</span>
-                      <span className="block text-[10px] font-bold text-slate-400 uppercase">Halls / Rooms</span>
+                      <span className="block font-mono text-lg font-bold text-emerald-600">
+                        {availableRooms.length - 1}
+                      </span>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase">
+                        Halls / Rooms
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -930,6 +1067,7 @@ export function LandingPage({
                   {/* Search Bar */}
                   <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
+
                     <input
                       type="text"
                       placeholder="Search session title, speaker, room, or conference..."
@@ -937,6 +1075,7 @@ export function LandingPage({
                       onChange={(e) => setScheduleSearch(e.target.value)}
                       className="w-full pl-10 pr-8 py-2 text-xs border border-slate-200 rounded-xl outline-none focus:border-blue-500 text-slate-800 transition-colors"
                     />
+
                     {scheduleSearch && (
                       <button
                         onClick={() => setScheduleSearch("")}
@@ -954,7 +1093,11 @@ export function LandingPage({
                     {/* Room Dropdown */}
                     <div className="flex items-center space-x-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-xs">
                       <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Room:</span>
+
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">
+                        Room:
+                      </span>
+
                       <select
                         value={selectedScheduleRoom}
                         onChange={(e) => setSelectedScheduleRoom(e.target.value)}
@@ -983,6 +1126,7 @@ export function LandingPage({
                       ) : (
                         <Bookmark className="w-3.5 h-3.5 text-slate-400" />
                       )}
+
                       <span>My Agenda ({savedSessionIds.length})</span>
                     </button>
 
@@ -1000,6 +1144,7 @@ export function LandingPage({
                         <Calendar className="w-3.5 h-3.5" />
                         <span className="hidden sm:inline">Timeline</span>
                       </button>
+
                       <button
                         onClick={() => setScheduleViewMode("halls")}
                         className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-colors cursor-pointer ${
@@ -1013,7 +1158,6 @@ export function LandingPage({
                         <span className="hidden sm:inline">By Room</span>
                       </button>
                     </div>
-
                   </div>
                 </div>
 
@@ -1023,6 +1167,7 @@ export function LandingPage({
                     <Filter className="w-3 h-3 text-slate-400" />
                     <span>Type:</span>
                   </span>
+
                   {availableTypes.map((type) => (
                     <button
                       key={type}
@@ -1037,30 +1182,37 @@ export function LandingPage({
                     </button>
                   ))}
                 </div>
-
               </div>
 
               {/* 4. ACTIVE FILTER CRITERIA SUMMARY */}
               <div className="flex flex-wrap items-center justify-between gap-2 px-1 text-xs text-slate-500">
                 <div className="flex items-center space-x-2">
                   <span>
-                    Showing <strong className="text-slate-900 font-bold">{filteredSchedule.length}</strong> {filteredSchedule.length === 1 ? 'session' : 'sessions'}
+                    Showing{" "}
+                    <strong className="text-slate-900 font-bold">
+                      {filteredSchedule.length}
+                    </strong>{" "}
+                    {filteredSchedule.length === 1 ? "session" : "sessions"}
                   </span>
+
                   {selectedScheduleConfId !== "all" && (
                     <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-semibold rounded-md border border-blue-100 text-[11px]">
                       {selectedScheduleConf?.title}
                     </span>
                   )}
+
                   {scheduleFilter !== "All" && (
                     <span className="px-2 py-0.5 bg-purple-50 text-purple-700 font-semibold rounded-md border border-purple-100 text-[11px]">
                       {scheduleFilter}
                     </span>
                   )}
+
                   {selectedScheduleRoom !== "All" && (
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-semibold rounded-md border border-slate-200 text-[11px]">
                       Room: {selectedScheduleRoom}
                     </span>
                   )}
+
                   {showSavedOnly && (
                     <span className="px-2 py-0.5 bg-amber-50 text-amber-700 font-semibold rounded-md border border-amber-200 text-[11px]">
                       Bookmarked Only
@@ -1068,7 +1220,11 @@ export function LandingPage({
                   )}
                 </div>
 
-                {(scheduleSearch || scheduleFilter !== "All" || selectedScheduleRoom !== "All" || showSavedOnly || selectedScheduleConfId !== "all") && (
+                {(scheduleSearch ||
+                  scheduleFilter !== "All" ||
+                  selectedScheduleRoom !== "All" ||
+                  showSavedOnly ||
+                  selectedScheduleConfId !== "all") && (
                   <button
                     onClick={() => {
                       setScheduleSearch("");
@@ -1089,7 +1245,11 @@ export function LandingPage({
                 /* Dynamic Empty States */
                 <div className="bg-white p-12 rounded-2xl border border-dashed border-slate-300 text-center space-y-4 shadow-2xs">
                   <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 mx-auto">
-                    {showSavedOnly ? <Bookmark className="w-6 h-6" /> : <Calendar className="w-6 h-6" />}
+                    {showSavedOnly ? (
+                      <Bookmark className="w-6 h-6" />
+                    ) : (
+                      <Calendar className="w-6 h-6" />
+                    )}
                   </div>
 
                   <div className="max-w-md mx-auto space-y-1">
@@ -1100,6 +1260,7 @@ export function LandingPage({
                         ? `No matching sessions found for "${scheduleSearch}"`
                         : "No Sessions Scheduled for this Selection"}
                     </h3>
+
                     <p className="text-xs text-slate-500 leading-relaxed">
                       {showSavedOnly
                         ? "You haven't added any talks to your personal timetable yet. Click the bookmark icon on any session card to save it."
@@ -1130,6 +1291,7 @@ export function LandingPage({
                         >
                           Show All Conferences
                         </button>
+
                         <button
                           onClick={() => onNavigate("login", "author")}
                           className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl cursor-pointer transition-colors"
@@ -1166,15 +1328,17 @@ export function LandingPage({
                               </span>
 
                               {/* Type Badge */}
-                              <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md border ${
-                                item.type === "Keynote"
-                                  ? "bg-blue-50 text-blue-700 border-blue-200"
-                                  : item.type === "Coffee Break"
-                                  ? "bg-amber-50 text-amber-700 border-amber-200"
-                                  : item.type === "Panel"
-                                  ? "bg-indigo-50 text-indigo-700 border-indigo-200"
-                                  : "bg-purple-50 text-purple-700 border-purple-200"
-                              }`}>
+                              <span
+                                className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md border ${
+                                  item.type === "Keynote"
+                                    ? "bg-blue-50 text-blue-700 border-blue-200"
+                                    : item.type === "Coffee Break"
+                                    ? "bg-amber-50 text-amber-700 border-amber-200"
+                                    : item.type === "Panel"
+                                    ? "bg-indigo-50 text-indigo-700 border-indigo-200"
+                                    : "bg-purple-50 text-purple-700 border-purple-200"
+                                }`}
+                              >
                                 {item.type}
                               </span>
 
@@ -1199,15 +1363,21 @@ export function LandingPage({
                             <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
                               <span className="flex items-center space-x-1.5">
                                 <User className="w-3.5 h-3.5 text-slate-400" />
-                                <span>Speaker / Presenter: <strong className="text-slate-800 font-semibold">{item.speaker}</strong></span>
+                                <span>
+                                  Speaker / Presenter:{" "}
+                                  <strong className="text-slate-800 font-semibold">
+                                    {item.speaker}
+                                  </strong>
+                                </span>
                               </span>
+
                               <span>&middot;</span>
+
                               <span className="flex items-center space-x-1.5">
                                 <Building2 className="w-3.5 h-3.5 text-slate-400" />
                                 <span>{item.room}</span>
                               </span>
                             </div>
-
                           </div>
                         </div>
                       </div>
@@ -1217,78 +1387,112 @@ export function LandingPage({
               ) : (
                 /* MODE B: GROUPED BY ROOM & TRACK VIEW */
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {(Object.entries(groupedByRoom) as [string, ScheduleItem[]][]).map(([roomName, sessionsInRoom]) => (
-                    <div
-                      key={roomName}
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs flex flex-col justify-between"
-                    >
-                      {/* Room Header */}
-                      <div className="p-4 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Building2 className="w-4 h-4 text-blue-600" />
-                          <h4 className="font-bold text-sm text-slate-900">{roomName}</h4>
+                  {(Object.entries(groupedByRoom) as [string, ScheduleItem[]][]).map(
+                    ([roomName, sessionsInRoom]) => (
+                      <div
+                        key={roomName}
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs flex flex-col justify-between"
+                      >
+                        {/* Room Header */}
+                        <div className="p-4 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="w-4 h-4 text-blue-600" />
+                            <h4 className="font-bold text-sm text-slate-900">
+                              {roomName}
+                            </h4>
+                          </div>
+
+                          <span className="px-2 py-0.5 bg-white text-slate-700 text-[10px] font-mono font-bold rounded border border-slate-200">
+                            {sessionsInRoom.length}{" "}
+                            {sessionsInRoom.length === 1 ? "Slot" : "Slots"}
+                          </span>
                         </div>
-                        <span className="px-2 py-0.5 bg-white text-slate-700 text-[10px] font-mono font-bold rounded border border-slate-200">
-                          {sessionsInRoom.length} {sessionsInRoom.length === 1 ? 'Slot' : 'Slots'}
-                        </span>
-                      </div>
 
-                      {/* Sessions Inside Room */}
-                      <div className="p-4 divide-y divide-slate-100 space-y-3">
-                        {sessionsInRoom.map((sess) => {
-                          const sessConf = confMap.get(sess.conferenceId);
-                          const isSaved = savedSessionIds.includes(sess.id);
-                          return (
-                            <div key={sess.id} className="pt-3 first:pt-0 space-y-1.5">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="px-2 py-0.5 bg-slate-100 text-slate-800 text-[10px] font-mono font-bold rounded">
-                                  {sess.timeSlot}
-                                </span>
-                                <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
-                                  {sess.type}
-                                </span>
-                              </div>
+                        {/* Sessions Inside Room */}
+                        <div className="p-4 divide-y divide-slate-100 space-y-3">
+                          {sessionsInRoom.map((sess) => {
+                            const sessConf = confMap.get(sess.conferenceId);
+                            const isSaved = savedSessionIds.includes(sess.id);
 
-                              <h5 className="text-xs font-bold text-slate-900 leading-snug">
-                                {sess.sessionTitle}
-                              </h5>
+                            return (
+                              <div
+                                key={sess.id}
+                                className="pt-3 first:pt-0 space-y-1.5"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="px-2 py-0.5 bg-slate-100 text-slate-800 text-[10px] font-mono font-bold rounded">
+                                    {sess.timeSlot}
+                                  </span>
 
-                              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                                <span>Speaker: <strong className="text-slate-700">{sess.speaker}</strong></span>
-                                <div className="flex items-center space-x-1.5">
-                                  <button
-                                    onClick={() => toggleSaveSession(sess.id)}
-                                    className={`p-1 rounded transition-colors ${
-                                      isSaved ? "text-amber-600" : "text-slate-400 hover:text-slate-700"
-                                    }`}
-                                    title={isSaved ? "Saved in agenda" : "Bookmark session"}
-                                  >
-                                    {isSaved ? <BookmarkCheck className="w-3.5 h-3.5" /> : <Bookmark className="w-3.5 h-3.5" />}
-                                  </button>
-                                  <button
-                                    onClick={() => exportSessionICS(sess, sessConf?.title || "Academic Conference")}
-                                    className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
-                                    title="Export .ics"
-                                  >
-                                    <Download className="w-3.5 h-3.5" />
-                                  </button>
+                                  <span className="text-[10px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                                    {sess.type}
+                                  </span>
+                                </div>
+
+                                <h5 className="text-xs font-bold text-slate-900 leading-snug">
+                                  {sess.sessionTitle}
+                                </h5>
+
+                                <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                                  <span>
+                                    Speaker:{" "}
+                                    <strong className="text-slate-700">
+                                      {sess.speaker}
+                                    </strong>
+                                  </span>
+
+                                  <div className="flex items-center space-x-1.5">
+                                    <button
+                                      onClick={() => toggleSaveSession(sess.id)}
+                                      className={`p-1 rounded transition-colors ${
+                                        isSaved
+                                          ? "text-amber-600"
+                                          : "text-slate-400 hover:text-slate-700"
+                                      }`}
+                                      title={
+                                        isSaved
+                                          ? "Saved in agenda"
+                                          : "Bookmark session"
+                                      }
+                                    >
+                                      {isSaved ? (
+                                        <BookmarkCheck className="w-3.5 h-3.5" />
+                                      ) : (
+                                        <Bookmark className="w-3.5 h-3.5" />
+                                      )}
+                                    </button>
+
+                                    <button
+                                      onClick={() =>
+                                        exportSessionICS(
+                                          sess,
+                                          sessConf?.title || "Academic Conference"
+                                        )
+                                      }
+                                      className="p-1 text-slate-400 hover:text-slate-700 transition-colors"
+                                      title="Export .ics"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
 
-                      {/* Room Footer Info */}
-                      <div className="p-3 bg-slate-50/50 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between">
-                        <span>Audio/Visual equipment &amp; podium enabled</span>
-                        <span className="font-mono">Live Track</span>
+                        {/* Room Footer Info */}
+                        <div className="p-3 bg-slate-50/50 border-t border-slate-100 text-[10px] text-slate-400 flex items-center justify-between">
+                          <span>
+                            Audio/Visual equipment &amp; podium enabled
+                          </span>
+                          <span className="font-mono">Live Track</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               )}
-
             </div>
           </div>
         )}
@@ -1301,17 +1505,21 @@ export function LandingPage({
                 <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto border border-amber-200 shadow-xs">
                   <Lock className="w-8 h-8" />
                 </div>
+
                 <div className="space-y-2">
                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-700 bg-amber-100/70 px-2.5 py-1 rounded-full border border-amber-250">
                     Authentication Required
                   </span>
+
                   <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
                     Sign In to Access Ticket Registration
                   </h2>
+
                   <p className="text-xs text-slate-500 leading-relaxed">
                     Conference ticket registration and pass checkout are restricted to authenticated delegates. Please log in or create an account to view and purchase registration passes.
                   </p>
                 </div>
+
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                   <button
                     onClick={() => onNavigate("login")}
@@ -1320,6 +1528,7 @@ export function LandingPage({
                     <Lock className="w-3.5 h-3.5" />
                     <span>Log In to Proceed</span>
                   </button>
+
                   <button
                     onClick={() => onNavigate("signup")}
                     className="w-full sm:w-auto px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
@@ -1331,328 +1540,418 @@ export function LandingPage({
             ) : (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
               
-              {/* Title Header */}
-              <div className="text-center max-w-2xl mx-auto space-y-3">
-                <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-600 uppercase bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                  Dynamic Registration Tiers
-                </span>
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
-                  Select Your Conference Pass
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                  Real-time registration rates loaded directly from each conference's fee schedule.
-                </p>
+                {/* Title Header */}
+                <div className="text-center max-w-2xl mx-auto space-y-3">
+                  <span className="text-[10px] font-mono font-bold tracking-wider text-emerald-600 uppercase bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+                    Dynamic Registration Tiers
+                  </span>
 
-                {/* Conference Switcher for Tickets */}
-                <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 font-medium">Conference:</span>
-                    <select
-                      value={selectedTicketConfId}
-                      onChange={(e) => setSelectedTicketConfId(e.target.value)}
-                      className="px-3 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-blue-500 cursor-pointer shadow-3xs"
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900">
+                    Select Your Conference Pass
+                  </h1>
+
+                  <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                    Real-time registration rates loaded directly from each conference's fee schedule.
+                  </p>
+
+                  {/* Conference Switcher for Tickets */}
+                  <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-slate-400 font-medium">
+                        Conference:
+                      </span>
+
+                      <select
+                        value={selectedTicketConfId}
+                        onChange={(e) => setSelectedTicketConfId(e.target.value)}
+                        className="px-3 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 outline-none focus:border-blue-500 cursor-pointer shadow-3xs"
+                      >
+                        {conferences.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedScheduleConfId(selectedTicketConfId);
+                        switchTab("schedule");
+                      }}
+                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer border border-blue-200"
                     >
-                      {conferences.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.title}
-                        </option>
-                      ))}
-                    </select>
+                      <Calendar className="w-3.5 h-3.5 text-blue-600" />
+                      <span>View Timetable &amp; Sessions</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedScheduleConfId(selectedTicketConfId);
-                      switchTab("schedule");
-                    }}
-                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-xl flex items-center space-x-1.5 transition-colors cursor-pointer border border-blue-200"
-                  >
-                    <Calendar className="w-3.5 h-3.5 text-blue-600" />
-                    <span>View Timetable &amp; Sessions</span>
-                    <ArrowRight className="w-3.5 h-3.5 text-blue-600" />
-                  </button>
                 </div>
-              </div>
 
-              {/* Dynamic Pass Cards Grid */}
-              {(() => {
-                const chosenConf = conferences.find((c) => c.id === selectedTicketConfId) || conferences[0];
-                const tiers = (chosenConf && chosenConf.ticketTiers && chosenConf.ticketTiers.length > 0)
-                  ? chosenConf.ticketTiers
-                  : [
-                      {
-                        id: `default-student-${chosenConf?.id || '1'}`,
-                        name: "Student Pass",
-                        price: 1500,
-                        currency: "NPR" as const,
-                        description: "For verified undergraduate and graduate research students.",
-                        features: ["Access to technical sessions", "Digital Certificate", "Conference Kit", "Himalayan Lunch"],
-                        recommendedGateway: "eSewa" as const,
-                        badgeText: "Student Special Rate",
-                        isPopular: false
-                      },
-                      {
-                        id: `default-pro-${chosenConf?.id || '1'}`,
-                        name: "Regular Pass",
-                        price: 3500,
-                        currency: "NPR" as const,
-                        description: "Ideal for academic faculty, researchers, and corporate delegates.",
-                        features: ["Full Keynotes & Panels", "Indexed Proceedings", "Gala Networking Dinner", "Printed Kit"],
-                        recommendedGateway: "Khalti" as const,
-                        badgeText: "Standard Delegate",
-                        isPopular: true
-                      },
-                      {
-                        id: `default-intl-${chosenConf?.id || '1'}`,
-                        name: "International Pass",
-                        price: 50,
-                        currency: "USD" as const,
-                        description: "For delegates visiting from international universities and research institutions.",
-                        features: ["Full 3-Day Conference Access", "Kathmandu Cultural Tour", "International Receipt", "All Meals & Banquets"],
-                        recommendedGateway: "Stripe" as const,
-                        badgeText: "International Visitor",
-                        isPopular: false
-                      }
-                    ];
+                {/* Dynamic Pass Cards Grid */}
+                {(() => {
+                  const chosenConf =
+                    conferences.find((c) => c.id === selectedTicketConfId) ||
+                    conferences[0];
 
-                return (
-                  <div className="space-y-6">
-                    {/* Logged-in Student Delegate Banner & Passes */}
-                    {isLoggedIn && currentUser && currentUser.role === "student" && (
-                      <div className="bg-gradient-to-br from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/90 rounded-2xl p-5 space-y-4 shadow-xs">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
-                              <GraduationCap className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs font-bold text-emerald-950">Student Delegate Account</span>
-                                <span className="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.5 rounded-md font-mono">
-                                  VERIFIED DELEGATE
-                                </span>
+                  const tiers =
+                    chosenConf &&
+                    chosenConf.ticketTiers &&
+                    chosenConf.ticketTiers.length > 0
+                      ? chosenConf.ticketTiers
+                      : [
+                          {
+                            id: `default-student-${chosenConf?.id || "1"}`,
+                            name: "Student Pass",
+                            price: 1500,
+                            currency: "NPR" as const,
+                            description:
+                              "For verified undergraduate and graduate research students.",
+                            features: [
+                              "Access to technical sessions",
+                              "Digital Certificate",
+                              "Conference Kit",
+                              "Himalayan Lunch"
+                            ],
+                            recommendedGateway: "eSewa" as const,
+                            badgeText: "Student Special Rate",
+                            isPopular: false
+                          },
+                          {
+                            id: `default-pro-${chosenConf?.id || "1"}`,
+                            name: "Regular Pass",
+                            price: 3500,
+                            currency: "NPR" as const,
+                            description:
+                              "Ideal for academic faculty, researchers, and corporate delegates.",
+                            features: [
+                              "Full Keynotes & Panels",
+                              "Indexed Proceedings",
+                              "Gala Networking Dinner",
+                              "Printed Kit"
+                            ],
+                            recommendedGateway: "Khalti" as const,
+                            badgeText: "Standard Delegate",
+                            isPopular: true
+                          },
+                          {
+                            id: `default-intl-${chosenConf?.id || "1"}`,
+                            name: "International Pass",
+                            price: 50,
+                            currency: "USD" as const,
+                            description:
+                              "For delegates visiting from international universities and research institutions.",
+                            features: [
+                              "Full 3-Day Conference Access",
+                              "Kathmandu Cultural Tour",
+                              "International Receipt",
+                              "All Meals & Banquets"
+                            ],
+                            recommendedGateway: "Stripe" as const,
+                            badgeText: "International Visitor",
+                            isPopular: false
+                          }
+                        ];
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Logged-in Student Delegate Banner & Passes */}
+                      {isLoggedIn &&
+                        currentUser &&
+                        currentUser.role === "student" && (
+                          <div className="bg-gradient-to-br from-emerald-50 via-teal-50/40 to-slate-50 border border-emerald-200/90 rounded-2xl p-5 space-y-4 shadow-xs">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                                  <GraduationCap className="w-5 h-5" />
+                                </div>
+
+                                <div>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-xs font-bold text-emerald-950">
+                                      Student Delegate Account
+                                    </span>
+
+                                    <span className="text-[10px] bg-emerald-200/80 text-emerald-800 font-bold px-2 py-0.5 rounded-md font-mono">
+                                      VERIFIED DELEGATE
+                                    </span>
+                                  </div>
+
+                                  <p className="text-xs text-emerald-700 font-medium">
+                                    Active student:{" "}
+                                    <strong>{currentUser.name}</strong> (
+                                    {currentUser.email})
+                                  </p>
+                                </div>
                               </div>
-                              <p className="text-xs text-emerald-700 font-medium">
-                                Active student: <strong>{currentUser.name}</strong> ({currentUser.email})
-                              </p>
                             </div>
+
+                            {/* Display Student's Purchased Passes if any */}
+                            {(() => {
+                              const userPasses = orders.filter(
+                                (o) =>
+                                  o.userEmail &&
+                                  o.userEmail.toLowerCase() ===
+                                    currentUser.email.toLowerCase()
+                              );
+
+                              if (userPasses.length > 0) {
+                                return (
+                                  <div className="pt-3 border-t border-emerald-200/70 space-y-2">
+                                    <span className="text-[11px] font-bold text-emerald-900 uppercase font-mono tracking-wider flex items-center space-x-1.5">
+                                      <BookmarkCheck className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span>
+                                        Your Purchased Passes ({userPasses.length})
+                                      </span>
+                                    </span>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                      {userPasses.map((pass) => (
+                                        <div
+                                          key={pass.id}
+                                          className="bg-white p-3 rounded-xl border border-emerald-200 shadow-3xs flex flex-col justify-between space-y-2"
+                                        >
+                                          <div className="flex items-start justify-between">
+                                            <div>
+                                              <span className="text-xs font-bold text-slate-900 block">
+                                                {pass.passType}
+                                              </span>
+
+                                              <span className="text-[10px] text-slate-400 font-mono">
+                                                #{pass.id.slice(0, 8)}
+                                              </span>
+                                            </div>
+
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 uppercase">
+                                              {pass.status}
+                                            </span>
+                                          </div>
+
+                                          <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 text-slate-600">
+                                            <span className="font-mono font-bold">
+                                              {pass.currency}{" "}
+                                              {pass.price?.toLocaleString()}
+                                            </span>
+
+                                            <span className="text-[10px] text-slate-400">
+                                              {pass.createdAt?.slice(0, 10)}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <div className="pt-2 text-[11px] text-emerald-800 leading-relaxed">
+                                  You have student access to browse conference schedule and tracks. Click above or below to buy your official subsidized Student Pass (NPR 1,500) and register your delegate attendance.
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+
+                      {/* Unauthenticated Student Callout */}
+                      {!isLoggedIn && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                          <div className="flex items-center space-x-2.5 text-slate-700">
+                            <GraduationCap className="w-5 h-5 text-emerald-600 shrink-0" />
+
+                            <span>
+                              Are you a college or university student?{" "}
+                              <strong>Sign up as a Student</strong> to reserve
+                              subsidized student passes (NPR 1,500) with full
+                              technical track access.
+                            </span>
                           </div>
 
-                          {currentUser.token && (
-                            <div className="flex items-center space-x-1.5 bg-white/80 border border-emerald-200/80 px-2.5 py-1.5 rounded-lg text-emerald-900 text-xs font-mono">
-                              <span className="text-[10px] text-emerald-600 font-bold uppercase">Token:</span>
-                              <span className="font-bold">{currentUser.token.slice(0, 14)}...</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Display Student's Purchased Passes if any */}
-                        {(() => {
-                          const userPasses = orders.filter(
-                            (o) => o.userEmail && o.userEmail.toLowerCase() === currentUser.email.toLowerCase()
-                          );
-                          if (userPasses.length > 0) {
-                            return (
-                              <div className="pt-3 border-t border-emerald-200/70 space-y-2">
-                                <span className="text-[11px] font-bold text-emerald-900 uppercase font-mono tracking-wider flex items-center space-x-1.5">
-                                  <BookmarkCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                  <span>Your Purchased Passes ({userPasses.length})</span>
-                                </span>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                                  {userPasses.map((pass) => (
-                                    <div key={pass.id} className="bg-white p-3 rounded-xl border border-emerald-200 shadow-3xs flex flex-col justify-between space-y-2">
-                                      <div className="flex items-start justify-between">
-                                        <div>
-                                          <span className="text-xs font-bold text-slate-900 block">{pass.passType}</span>
-                                          <span className="text-[10px] text-slate-400 font-mono">#{pass.id.slice(0, 8)}</span>
-                                        </div>
-                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 uppercase">
-                                          {pass.status}
-                                        </span>
-                                      </div>
-                                      <div className="flex items-center justify-between text-[11px] pt-1 border-t border-slate-100 text-slate-600">
-                                        <span className="font-mono font-bold">{pass.currency} {pass.price?.toLocaleString()}</span>
-                                        <span className="text-[10px] text-slate-400">{pass.createdAt?.slice(0, 10)}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            );
-                          }
-                          return (
-                            <div className="pt-2 text-[11px] text-emerald-800 leading-relaxed">
-                              You have student access to browse conference schedule and tracks. Click above or below to buy your official subsidized Student Pass (NPR 1,500) and register your delegate attendance.
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    )}
-
-                    {/* Unauthenticated Student Callout */}
-                    {!isLoggedIn && (
-                      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                        <div className="flex items-center space-x-2.5 text-slate-700">
-                          <GraduationCap className="w-5 h-5 text-emerald-600 shrink-0" />
-                          <span>
-                            Are you a college or university student? <strong>Sign up as a Student</strong> to reserve subsidized student passes (NPR 1,500) with full technical track access.
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2 shrink-0">
-                          <button
-                            onClick={() => onNavigate("signup", "student")}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors cursor-pointer text-xs"
-                          >
-                            Student Sign Up
-                          </button>
-                          <button
-                            onClick={() => onNavigate("login", "student")}
-                            className="px-3 py-1.5 border border-slate-300 hover:bg-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer text-xs"
-                          >
-                            Student Login
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {chosenConf && (
-                      <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-600">
-                        <div className="flex items-center space-x-2">
-                          <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
-                          <span className="font-bold text-slate-900">{chosenConf.title}</span>
-                        </div>
-                        <div className="flex items-center space-x-3 text-[11px] text-slate-500 font-medium">
-                          <span>{chosenConf.date}</span>
-                          <span>•</span>
-                          <span>{chosenConf.venue}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                      {tiers.map((tier) => {
-                        const isStudentTier = tier.name.toLowerCase().includes("student");
-                        return (
-                          <div
-                            key={tier.id}
-                            className={`rounded-2xl p-7 space-y-6 flex flex-col justify-between transition-all relative ${
-                              isStudentTier && currentUser?.role === "student"
-                                ? "bg-white border-2 border-emerald-600 shadow-md ring-2 ring-emerald-500/10"
-                                : tier.isPopular
-                                  ? "bg-white border-2 border-slate-900 shadow-md ring-2 ring-slate-900/5"
-                                  : "bg-slate-50 border border-slate-200 hover:border-slate-300 shadow-3xs"
-                            }`}
-                          >
-                            {tier.isPopular && (
-                              <div className="absolute top-0 right-6 -translate-y-1/2 px-3 py-1 bg-blue-600 text-white text-[10px] rounded-full font-bold uppercase font-mono tracking-wider shadow-2xs">
-                                Most Popular
-                              </div>
-                            )}
-
-                            {isStudentTier && (
-                              <div className="absolute top-0 right-6 -translate-y-1/2 px-3 py-1 bg-emerald-600 text-white text-[10px] rounded-full font-bold uppercase font-mono tracking-wider shadow-2xs flex items-center space-x-1">
-                                <GraduationCap className="w-3 h-3" />
-                                <span>Student Delegate</span>
-                              </div>
-                            )}
-
-                            <div className="space-y-4">
-                              {tier.badgeText && (
-                                <span className={`text-[10px] font-mono font-bold tracking-wider uppercase px-2.5 py-1 rounded-md inline-block ${
-                                  isStudentTier
-                                    ? "text-emerald-700 bg-emerald-100/80 border border-emerald-200"
-                                    : tier.isPopular
-                                      ? "text-purple-700 bg-purple-100/80 border border-purple-200"
-                                      : "text-blue-700 bg-blue-100/80 border border-blue-200"
-                                }`}>
-                                  {tier.badgeText}
-                                </span>
-                              )}
-
-                              <h3 className="font-bold text-lg text-slate-900">{tier.name}</h3>
-                              <p className="text-xs text-slate-500 leading-relaxed">
-                                {tier.description}
-                              </p>
-
-                              <div className="pt-2 font-mono text-3xl font-black text-slate-900">
-                                {tier.currency} {tier.price.toLocaleString()}
-                              </div>
-
-                              {tier.features && tier.features.length > 0 && (
-                                <div className="border-t border-slate-200/80 pt-4 space-y-2 text-xs text-slate-600">
-                                  {tier.features.map((feature, idx) => (
-                                    <div key={idx} className="flex items-center space-x-2">
-                                      <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                                      <span>{feature}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                          <div className="flex items-center space-x-2 shrink-0">
+                            <button
+                              onClick={() => onNavigate("signup", "student")}
+                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors cursor-pointer text-xs"
+                            >
+                              Student Sign Up
+                            </button>
 
                             <button
-                              onClick={() => {
-                                if (!isLoggedIn) {
-                                  onNavigate("login");
-                                  return;
-                                }
-                                if (onBuyTicket) {
-                                  onBuyTicket({
-                                    conferenceId: chosenConf?.id || "conf-1",
-                                    passType: tier.name,
-                                    price: tier.price,
-                                    currency: tier.currency,
-                                    gateway: tier.recommendedGateway || "eSewa",
-                                    userName: currentUser?.name,
-                                    userEmail: currentUser?.email,
-                                  });
-                                } else {
-                                  onNavigate("app", isStudentTier ? "student" : "author");
-                                }
-                              }}
-                              className={`w-full py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center block shadow-2xs ${
-                                isStudentTier
-                                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                                  : tier.isPopular
-                                    ? "bg-slate-900 hover:bg-slate-800 text-white"
-                                    : "bg-blue-600 hover:bg-blue-700 text-white"
-                              }`}
+                              onClick={() => onNavigate("login", "student")}
+                              className="px-3 py-1.5 border border-slate-300 hover:bg-white text-slate-700 font-bold rounded-lg transition-colors cursor-pointer text-xs"
                             >
-                              Buy {tier.name} ({tier.currency} {tier.price.toLocaleString()})
+                              Student Login
                             </button>
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
+                        </div>
+                      )}
 
-              {/* Payment Methods Info Banner */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="space-y-1 text-center md:text-left">
-                  <h4 className="font-bold text-sm text-slate-900">Supported Local &amp; International Payment Gateways</h4>
-                  <p className="text-xs text-slate-500">Pay safely with local mobile wallets or global debit/credit cards.</p>
-                </div>
-                <div className="flex flex-wrap items-center justify-center gap-3">
-                  <span className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-lg font-mono">
-                    eSewa
-                  </span>
-                  <span className="px-3 py-1.5 bg-purple-50 text-purple-800 border border-purple-200 font-bold text-xs rounded-lg font-mono">
-                    Khalti
-                  </span>
-                  <span className="px-3 py-1.5 bg-blue-50 text-blue-800 border border-blue-200 font-bold text-xs rounded-lg font-mono">
-                    Stripe / VISA / Mastercard
-                  </span>
+                      {chosenConf && (
+                        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-600">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="w-4 h-4 text-blue-600 shrink-0" />
+                            <span className="font-bold text-slate-900">
+                              {chosenConf.title}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center space-x-3 text-[11px] text-slate-500 font-medium">
+                            <span>{chosenConf.date}</span>
+                            <span>•</span>
+                            <span>{chosenConf.venue}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {tiers.map((tier) => {
+                          const isStudentTier = tier.name
+                            .toLowerCase()
+                            .includes("student");
+
+                          return (
+                            <div
+                              key={tier.id}
+                              className={`rounded-2xl p-7 space-y-6 flex flex-col justify-between transition-all relative ${
+                                isStudentTier && currentUser?.role === "student"
+                                  ? "bg-white border-2 border-emerald-600 shadow-md ring-2 ring-emerald-500/10"
+                                  : tier.isPopular
+                                  ? "bg-white border-2 border-slate-900 shadow-md ring-2 ring-slate-900/5"
+                                  : "bg-slate-50 border border-slate-200 hover:border-slate-300 shadow-3xs"
+                              }`}
+                            >
+                              {tier.isPopular && (
+                                <div className="absolute top-0 right-6 -translate-y-1/2 px-3 py-1 bg-blue-600 text-white text-[10px] rounded-full font-bold uppercase font-mono tracking-wider shadow-2xs">
+                                  Most Popular
+                                </div>
+                              )}
+
+                              {isStudentTier && (
+                                <div className="absolute top-0 right-6 -translate-y-1/2 px-3 py-1 bg-emerald-600 text-white text-[10px] rounded-full font-bold uppercase font-mono tracking-wider shadow-2xs flex items-center space-x-1">
+                                  <GraduationCap className="w-3 h-3" />
+                                  <span>Student Delegate</span>
+                                </div>
+                              )}
+
+                              <div className="space-y-4">
+                                {tier.badgeText && (
+                                  <span
+                                    className={`text-[10px] font-mono font-bold tracking-wider uppercase px-2.5 py-1 rounded-md inline-block ${
+                                      isStudentTier
+                                        ? "text-emerald-700 bg-emerald-100/80 border border-emerald-200"
+                                        : tier.isPopular
+                                        ? "text-purple-700 bg-purple-100/80 border border-purple-200"
+                                        : "text-blue-700 bg-blue-100/80 border border-blue-200"
+                                    }`}
+                                  >
+                                    {tier.badgeText}
+                                  </span>
+                                )}
+
+                                <h3 className="font-bold text-lg text-slate-900">
+                                  {tier.name}
+                                </h3>
+
+                                <p className="text-xs text-slate-500 leading-relaxed">
+                                  {tier.description}
+                                </p>
+
+                                <div className="pt-2 font-mono text-3xl font-black text-slate-900">
+                                  {tier.currency}{" "}
+                                  {tier.price.toLocaleString()}
+                                </div>
+
+                                {tier.features &&
+                                  tier.features.length > 0 && (
+                                    <div className="border-t border-slate-200/80 pt-4 space-y-2 text-xs text-slate-600">
+                                      {tier.features.map((feature, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="flex items-center space-x-2"
+                                        >
+                                          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                                          <span>{feature}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                              </div>
+
+                              <button
+                                onClick={() => {
+                                  if (!isLoggedIn) {
+                                    onNavigate("login");
+                                    return;
+                                  }
+
+                                  if (onBuyTicket) {
+                                    onBuyTicket({
+                                      conferenceId:
+                                        chosenConf?.id || "conf-1",
+                                      passType: tier.name,
+                                      price: tier.price,
+                                      currency: tier.currency,
+                                      gateway:
+                                        tier.recommendedGateway || "eSewa",
+                                      userName: currentUser?.name,
+                                      userEmail: currentUser?.email,
+                                    });
+                                  } else {
+                                    onNavigate(
+                                      "app",
+                                      isStudentTier ? "student" : "author"
+                                    );
+                                  }
+                                }}
+                                className={`w-full py-2.5 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center block shadow-2xs ${
+                                  isStudentTier
+                                    ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                    : tier.isPopular
+                                    ? "bg-slate-900 hover:bg-slate-800 text-white"
+                                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                                }`}
+                              >
+                                Buy {tier.name} ({tier.currency}{" "}
+                                {tier.price.toLocaleString()})
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Payment Methods Info Banner */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="space-y-1 text-center md:text-left">
+                    <h4 className="font-bold text-sm text-slate-900">
+                      Supported Local &amp; International Payment Gateways
+                    </h4>
+
+                    <p className="text-xs text-slate-500">
+                      Pay safely with local mobile wallets or global debit/credit cards.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <span className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-lg font-mono">
+                      eSewa
+                    </span>
+
+                    <span className="px-3 py-1.5 bg-purple-50 text-purple-800 border border-purple-200 font-bold text-xs rounded-lg font-mono">
+                      Khalti
+                    </span>
+
+                    <span className="px-3 py-1.5 bg-blue-50 text-blue-800 border border-blue-200 font-bold text-xs rounded-lg font-mono">
+                      Stripe / VISA / Mastercard
+                    </span>
+                  </div>
                 </div>
               </div>
-
-            </div>
             )}
           </div>
         )}
-
       </main>
 
       {/* 3. CONSISTENT BOTTOM SIGNUP CTA & FOOTER */}
@@ -1661,18 +1960,25 @@ export function LandingPage({
         
         {/* Bottom CTA */}
         <div className="py-16 max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-2xl font-bold tracking-tight">Ready to Join ConfHub?</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            Ready to Join ConfHub?
+          </h2>
+
           <p className="text-xs text-slate-400 max-w-md mx-auto">
             Get started with your delegate pass or register a new account today.
           </p>
+
           <div className="flex flex-wrap justify-center gap-3">
             <button
               onClick={() => onNavigate(isLoggedIn ? "app" : "signup")}
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg flex items-center space-x-2 transition-colors cursor-pointer shadow-sm"
             >
-              <span>{isLoggedIn ? "Go to Workspace" : "Create Account"}</span>
+              <span>
+                {isLoggedIn ? "Go to Workspace" : "Create Account"}
+              </span>
               <ArrowRight className="w-4 h-4" />
             </button>
+
             <button
               onClick={() => onNavigate(isLoggedIn ? "app" : "login")}
               className="px-6 py-2.5 bg-transparent border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
@@ -1686,24 +1992,51 @@ export function LandingPage({
         <div className="border-t border-slate-900 py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
             <div className="flex items-center space-x-2">
-              <span className="font-bold text-slate-300">ConfHub Platform</span>
+              <span className="font-bold text-slate-300">
+                ConfHub Platform
+              </span>
+
               <span>&middot;</span>
+
               <span>Academic Conference System</span>
             </div>
+
             <div className="flex items-center space-x-6 text-[11px]">
-              <button onClick={() => switchTab("home")} className="hover:text-slate-300 transition-colors">Home</button>
-              <button onClick={() => switchTab("features")} className="hover:text-slate-300 transition-colors">Features</button>
-              <button onClick={() => switchTab("schedule")} className="hover:text-slate-300 transition-colors">Schedule</button>
-              <button onClick={() => switchTab("tickets")} className="hover:text-slate-300 transition-colors">Tickets</button>
+              <button
+                onClick={() => switchTab("home")}
+                className="hover:text-slate-300 transition-colors"
+              >
+                Home
+              </button>
+
+              <button
+                onClick={() => switchTab("features")}
+                className="hover:text-slate-300 transition-colors"
+              >
+                Features
+              </button>
+
+              <button
+                onClick={() => switchTab("schedule")}
+                className="hover:text-slate-300 transition-colors"
+              >
+                Schedule
+              </button>
+
+              <button
+                onClick={() => switchTab("tickets")}
+                className="hover:text-slate-300 transition-colors"
+              >
+                Tickets
+              </button>
             </div>
+
             <div>
               &copy; {new Date().getFullYear()} ConfHub. All rights reserved.
             </div>
           </div>
         </div>
-
       </footer>
-
     </div>
   );
 }

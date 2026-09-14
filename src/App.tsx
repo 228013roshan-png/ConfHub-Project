@@ -448,24 +448,55 @@ export default function App() {
   };
 
   // Accepted or rejected paper
-  const handleUpdateStatus = async (paperId: string, status: "Accepted" | "Rejected") => {
-    try {
-      const res = await fetch(`/api/papers/${paperId}/status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-      if (res.ok) {
-        await fetchState();
-        showToast(`Manuscript decision updated to ${status}.`, "success");
-      } else {
-        showToast("Failed to update manuscript decision status.", "error");
-      }
-    } catch (e) {
-      console.error(e);
-      showToast("Error updating paper status.", "error");
+ const handleUpdateStatus = async (
+  paperId: string,
+  status: "Accepted" | "Rejected",
+  rejectionReason?: string
+) => {
+  try {
+    const res = await fetch(`/api/papers/${paperId}/status`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        status,
+        rejectionReason,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.ok) {
+      await fetchState();
+
+      showToast(
+        status === "Accepted"
+          ? "Paper accepted successfully."
+          : "Paper rejected successfully.",
+        "success"
+      );
+
+      return true;
     }
-  };
+
+    showToast(
+      data.error || "Failed to update paper decision.",
+      "error"
+    );
+
+    return false;
+  } catch (e) {
+    console.error(e);
+
+    showToast(
+      "Unable to update paper decision. Please try again.",
+      "error"
+    );
+
+    return false;
+  }
+};
 
   // Submit Review Rubrics comments
   const handleSubmitReview = async (reviewData: {

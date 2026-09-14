@@ -477,6 +477,17 @@ Verification URL: https://confhub.edu.np/verify/${order.trnRef}
                           <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide border ${getStatusBadge(paper.status)}`}>
                             {paper.status}
                           </span>
+                          {paper.status === "Rejected" && paper.rejectionReason && (
+  <div className="mt-3 bg-rose-50 border border-rose-200 rounded-lg p-3">
+    <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-700">
+      Reason for rejection
+    </p>
+
+    <p className="text-xs text-rose-800 mt-1.5 leading-relaxed">
+      {paper.rejectionReason}
+    </p>
+  </div>
+)}
                           <h4 className="font-bold text-slate-900 text-sm">{paper.title}</h4>
                           <span className="text-[11px] text-slate-400 block">{conf?.title}</span>
                         </div>

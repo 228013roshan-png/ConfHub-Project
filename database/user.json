@@ -28,6 +28,28 @@
       ],
       "submittedPapers": [],
       "tickets": []
+    },
+    {
+      "id": "usr-aut-1789411935736",
+      "name": "Pratik Karna",
+      "email": "pratikgsn@gmail.com",
+      "password": "testtest",
+      "role": "author",
+      "token": "cfh_tok_i9rgf9hnmu1lny7s",
+      "institution": "Kathmandu University",
+      "designation": "Author / Presenter",
+      "domains": [],
+      "status": "Active",
+      "createdAt": "2026-09-14T18:52:15.736Z",
+      "lastLogin": "2026-09-14T18:53:45.755Z",
+      "permissions": [
+        "submit_abstracts",
+        "view_paper_review_status",
+        "purchase_conference_tickets",
+        "view_personal_schedule"
+      ],
+      "submittedPapers": [],
+      "tickets": []
     }
   ]
 }

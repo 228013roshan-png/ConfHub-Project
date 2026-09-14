@@ -44,7 +44,11 @@ interface AdminPortalProps {
   onAutoMatchPaper: (paperId: string) => Promise<{ matchedReviewer: Reviewer | null; score: number }>;
   onManualAssign: (paperId: string, reviewerId: string) => Promise<void>;
   onUnassignReviewer?: (paperId: string) => Promise<void>;
-  onUpdatePaperStatus: (paperId: string, status: "Accepted" | "Rejected") => Promise<void>;
+  onUpdatePaperStatus: (
+  paperId: string,
+  status: "Accepted" | "Rejected",
+  rejectionReason?: string
+) => Promise<boolean | void>;
   onSaveSchedule: (newSchedule: ScheduleItem[]) => Promise<void>;
   onRefreshOrders?: () => Promise<void>;
 }
@@ -94,6 +98,9 @@ export function AdminPortal({
 
   // Accept Paper & Session Block Modal State
   const [acceptModalPaper, setAcceptModalPaper] = useState<Paper | null>(null);
+  const [rejectModalPaper, setRejectModalPaper] = useState<Paper | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isProcessingReject, setIsProcessingReject] = useState(false);
   const [sessionConferenceId, setSessionConferenceId] = useState<string>("");
   const [sessionTitle, setSessionTitle] = useState<string>("");
   const [sessionSpeaker, setSessionSpeaker] = useState<string>("");
@@ -778,12 +785,15 @@ export function AdminPortal({
                             <span>Add Session Block</span>
                           </button>
                           <button
-                            onClick={() => onUpdatePaperStatus(paper.id, "Rejected")}
-                            className="px-2.5 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[11px] font-medium cursor-pointer transition-colors"
-                            title="Change decision to Rejected"
-                          >
-                            Revoke / Reject
-                          </button>
+  onClick={() => {
+    setRejectModalPaper(paper);
+    setRejectionReason("");
+  }}
+  className="px-2.5 py-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-[11px] font-medium cursor-pointer transition-colors"
+  title="Change decision to Rejected"
+>
+  Revoke / Reject
+</button>
                         </>
                       ) : isRejected ? (
                         <>
@@ -809,11 +819,14 @@ export function AdminPortal({
                             <span>Accept Paper</span>
                           </button>
                           <button
-                            onClick={() => onUpdatePaperStatus(paper.id, "Rejected")}
-                            className="px-3 py-1.5 bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-medium cursor-pointer transition-colors"
-                          >
-                            Reject Paper
-                          </button>
+  onClick={() => {
+    setRejectModalPaper(paper);
+    setRejectionReason("");
+  }}
+  className="px-3 py-1.5 bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-medium cursor-pointer transition-colors"
+>
+  Reject Paper
+</button>
                         </>
                       )}
                     </div>
@@ -2020,6 +2033,116 @@ export function AdminPortal({
         </div>
       )}
 
+  {/* Reject Paper Modal */}
+{rejectModalPaper && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden">
+      
+      <div className="px-6 py-4 border-b border-slate-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-slate-900 text-sm">
+              Reject Paper
+            </h3>
+
+            <p className="text-xs text-slate-500 mt-1">
+              Please provide a reason for this decision.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setRejectModalPaper(null);
+              setRejectionReason("");
+            }}
+            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-4">
+        
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <p className="text-[10px] uppercase tracking-wide font-semibold text-slate-400">
+            Paper
+          </p>
+
+          <p className="text-sm font-semibold text-slate-900 mt-1">
+            {rejectModalPaper.title}
+          </p>
+
+          <p className="text-xs text-slate-500 mt-1">
+            {rejectModalPaper.authorName} · {rejectModalPaper.authorEmail}
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-2">
+            Reason for rejection
+          </label>
+
+          <textarea
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            rows={5}
+            placeholder="Explain why this paper is being rejected..."
+            className="w-full px-3 py-2.5 text-sm bg-white border border-slate-300 rounded-lg outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 resize-none text-slate-800"
+          />
+
+          <p className="text-[11px] text-slate-400 mt-1.5">
+            This reason will be visible to the author.
+          </p>
+        </div>
+      </div>
+
+      <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setRejectModalPaper(null);
+            setRejectionReason("");
+          }}
+          className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg transition-colors"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          disabled={!rejectionReason.trim() || isProcessingReject}
+          onClick={async () => {
+            if (!rejectModalPaper || !rejectionReason.trim()) {
+              return;
+            }
+
+            setIsProcessingReject(true);
+
+            try {
+              const success = await onUpdatePaperStatus(
+                rejectModalPaper.id,
+                "Rejected",
+                rejectionReason.trim()
+              );
+
+              if (success !== false) {
+                setRejectModalPaper(null);
+                setRejectionReason("");
+              }
+            } finally {
+              setIsProcessingReject(false);
+            }
+          }}
+          className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isProcessingReject ? "Rejecting..." : "Confirm Rejection"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

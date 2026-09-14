@@ -21,4 +21,11 @@ router.post(
   AuthController.login
 );
 
+// POST /api/users/verify-code - Verify email authentication code
+router.post(
+  "/verify-code",
+  validateRequiredFields(["email", "code"]),
+  AuthController.verifyCode
+);
+
 export default router;

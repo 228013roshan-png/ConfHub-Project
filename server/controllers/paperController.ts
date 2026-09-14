@@ -120,14 +120,53 @@ export class PaperController {
    * Update paper final status (Accepted / Rejected / Pending / Under Review)
    */
   static updateStatus(req: Request, res: Response) {
-    const { id } = req.params;
-    const { status } = req.body;
-    const state = getDbState();
-    const paper = state.papers.find((p) => p.id === id);
-    if (!paper) return res.status(404).json({ error: "Paper not found." });
+  const { id } = req.params;
+  const { status, rejectionReason } = req.body;
 
-    paper.status = status;
-    saveDbState(state);
-    return res.json(paper);
+  const allowedStatuses = [
+    "Pending",
+    "Under Review",
+    "Accepted",
+    "Rejected",
+  ];
+
+  if (!allowedStatuses.includes(status)) {
+    return res.status(400).json({
+      error: "Invalid paper status.",
+    });
   }
+
+  if (status === "Rejected" && !rejectionReason?.trim()) {
+    return res.status(400).json({
+      error: "A rejection reason is required.",
+    });
+  }
+
+  const state = getDbState();
+
+  const paper = state.papers.find((p) => p.id === id);
+
+  if (!paper) {
+    return res.status(404).json({
+      error: "Paper not found.",
+    });
+  }
+
+  paper.status = status;
+
+  if (status === "Rejected") {
+    paper.rejectionReason = rejectionReason.trim();
+    paper.rejectedAt = new Date().toISOString();
+  } else {
+    delete paper.rejectionReason;
+    delete paper.rejectedAt;
+  }
+
+  saveDbState(state);
+
+  return res.json({
+    success: true,
+    paper,
+  });
+}
 }
