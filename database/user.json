@@ -16,7 +16,7 @@
       ],
       "status": "Active",
       "createdAt": "2026-09-01T09:00:00.000Z",
-      "lastLogin": "2026-09-03T03:00:00.000Z",
+      "lastLogin": "2026-09-20T17:31:49.196Z",
       "permissions": [
         "manage_conferences",
         "manage_papers",
@@ -42,6 +42,50 @@
       "status": "Active",
       "createdAt": "2026-09-14T18:52:15.736Z",
       "lastLogin": "2026-09-14T18:53:45.755Z",
+      "permissions": [
+        "submit_abstracts",
+        "view_paper_review_status",
+        "purchase_conference_tickets",
+        "view_personal_schedule"
+      ],
+      "submittedPapers": [],
+      "tickets": []
+    },
+    {
+      "id": "usr-aut-1789459446222",
+      "name": "Pratik Karna",
+      "email": "pratikk456789@gmail.com",
+      "password": "test",
+      "role": "author",
+      "token": "cfh_tok_ismvykukmu2dy9ji",
+      "institution": "KU",
+      "designation": "Author / Presenter",
+      "domains": [],
+      "status": "Active",
+      "createdAt": "2026-09-15T08:04:06.222Z",
+      "lastLogin": "2026-09-15T08:04:06.222Z",
+      "permissions": [
+        "submit_abstracts",
+        "view_paper_review_status",
+        "purchase_conference_tickets",
+        "view_personal_schedule"
+      ],
+      "submittedPapers": [],
+      "tickets": []
+    },
+    {
+      "id": "usr-aut-1789924925729",
+      "name": "Resuv Nepal",
+      "email": "resuvnepal@gmail.com",
+      "password": "test",
+      "role": "author",
+      "token": "cfh_tok_xvy89oh6mua333tt",
+      "institution": "K.U.",
+      "designation": "Author / Presenter",
+      "domains": [],
+      "status": "Active",
+      "createdAt": "2026-09-20T17:22:05.729Z",
+      "lastLogin": "2026-09-20T17:32:55.520Z",
       "permissions": [
         "submit_abstracts",
         "view_paper_review_status",

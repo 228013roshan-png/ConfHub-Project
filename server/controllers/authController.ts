@@ -15,6 +15,8 @@ import {
   sendVerificationCode,
 } from "../services/emailService";
 
+const pendingRegistrations = new Map<string, StoredUser>();
+
 export class AuthController {
   /**
    * GET /api/users
@@ -35,9 +37,9 @@ export class AuthController {
 
   /**
    * POST /api/users/register
-   * Register a new user and persist directly to database/user.json
+   * Start registration and persist the user only after email verification.
    */
-  static register(req: Request, res: Response) {
+  static async register(req: Request, res: Response) {
     const {
       name,
       email,
@@ -146,63 +148,31 @@ export class AuthController {
       tickets: [],
     };
 
-    data.users.push(newUser);
-    saveUserData(data);
+    try {
+      const code = generateOtp(normalizedEmail);
+      await sendVerificationCode(normalizedEmail, code);
+      pendingRegistrations.set(normalizedEmail, newUser);
 
-    // If reviewer, also sync with reviewer.json
-    if (roleClean === "reviewer") {
-      try {
-        const reviewerData = getReviewers();
-
-        const reviewerExists = reviewerData.reviewers.some(
-          (r) => r.email.toLowerCase() === normalizedEmail
-        );
-
-        if (!reviewerExists) {
-          reviewerData.reviewers.push({
-            id: `rev-${Date.now()}`,
-            name: newUser.name,
-            email: newUser.email,
-            domains:
-              newUser.domains && newUser.domains.length > 0
-                ? newUser.domains
-                : [
-                    "Artificial Intelligence",
-                    "General Computer Science",
-                  ],
-          });
-
-          saveReviewers(reviewerData.reviewers);
-        }
-      } catch (e) {
-        console.error(
-          "Error syncing reviewer to reviewer.json:",
-          e
-        );
-      }
+      return res.status(202).json({
+        requiresVerification: true,
+        email: normalizedEmail,
+        role: roleClean,
+        message: "A verification code has been sent to your email.",
+      });
+    } catch (error) {
+      clearOtp(normalizedEmail);
+      pendingRegistrations.delete(normalizedEmail);
+      console.error("Failed to send registration verification email:", error);
+      return res.status(500).json({
+        error: "Unable to send verification email. Please try again.",
+      });
     }
-
-    const { password: _, ...safeUser } = newUser;
-
-    return res.status(201).json({
-      user: safeUser,
-      token: newUser.token,
-      message: "User successfully registered and saved to user.json",
-    });
   }
 
   /**
    * POST /api/users/login
    *
-   * Step 1 of authentication:
-   * - Validate email
-   * - Validate password
-   * - Validate role
-   * - Generate OTP
-   * - Send OTP to user's email
-   *
-   * The actual login token is NOT returned until the OTP
-   * has been successfully verified.
+   * Validate credentials and return the authenticated user directly.
    */
   static async login(req: Request, res: Response) {
     const { email, password, role } = req.body;
@@ -239,42 +209,19 @@ export class AuthController {
       });
     }
 
-    try {
-      const code = generateOtp(user.email);
-
-      await sendVerificationCode(user.email, code);
-
-      return res.json({
-        requiresVerification: true,
-        email: user.email,
-        role: user.role,
-        message:
-          "A verification code has been sent to your email.",
-      });
-    } catch (error) {
-      console.error(
-        "Failed to send verification email:",
-        error
-      );
-
-      clearOtp(user.email);
-
-      return res.status(500).json({
-        error:
-          "Unable to send verification email. Please try again.",
-      });
+    if (!user.token) {
+      user.token = `cfh_tok_${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`;
     }
+    user.lastLogin = new Date().toISOString();
+    saveUserData(data);
+    const { password: _, ...safeUser } = user;
+    return res.json({ user: safeUser, token: user.token, message: "Authentication successful." });
   }
 
   /**
    * POST /api/users/verify-code
    *
-   * Step 2 of authentication:
-   * - Verify the OTP
-   * - Find the user
-   * - Generate/retain login token
-   * - Update lastLogin
-   * - Return authenticated user
+   * Verify a registration OTP, then persist and return the new account.
    */
   static async verifyCode(req: Request, res: Response) {
     const { email, code, role } = req.body;
@@ -299,15 +246,11 @@ export class AuthController {
       });
     }
 
-    const data = getUserData();
-
-    const user = data.users.find(
-      (u) => u.email.toLowerCase() === normalizedEmail
-    );
+    const user = pendingRegistrations.get(normalizedEmail);
 
     if (!user) {
       return res.status(404).json({
-        error: "User account could not be found.",
+        error: "No pending registration could be found.",
       });
     }
 
@@ -318,15 +261,31 @@ export class AuthController {
       });
     }
 
-    if (!user.token) {
-      user.token = `cfh_tok_${Math.random()
-        .toString(36)
-        .substring(2, 10)}${Date.now().toString(36)}`;
+    const data = getUserData();
+    if (data.users.some((existing) => existing.email.toLowerCase() === normalizedEmail)) {
+      pendingRegistrations.delete(normalizedEmail);
+      return res.status(409).json({ error: "This account has already been registered." });
     }
-
-    user.lastLogin = new Date().toISOString();
-
+    data.users.push(user);
     saveUserData(data);
+    pendingRegistrations.delete(normalizedEmail);
+
+    if (user.role === "reviewer") {
+      try {
+        const reviewerData = getReviewers();
+        if (!reviewerData.reviewers.some((reviewer) => reviewer.email.toLowerCase() === normalizedEmail)) {
+          reviewerData.reviewers.push({
+            id: `rev-${Date.now()}`,
+            name: user.name,
+            email: user.email,
+            domains: user.domains?.length ? user.domains : ["Artificial Intelligence", "General Computer Science"],
+          });
+          saveReviewers(reviewerData.reviewers);
+        }
+      } catch (error) {
+        console.error("Error syncing reviewer to reviewer.json:", error);
+      }
+    }
 
     const {
       password: _,
@@ -336,7 +295,7 @@ export class AuthController {
     return res.json({
       user: safeUser,
       token: user.token,
-      message: "Authentication successful.",
+      message: "Registration verified and completed successfully.",
     });
   }
 }

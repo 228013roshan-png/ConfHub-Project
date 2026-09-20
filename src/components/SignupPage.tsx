@@ -40,6 +40,9 @@ export function SignupPage({ onNavigate, onRefreshDatabase, onLoginSuccess, curr
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [success, setSuccess] = useState(false);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationLoading, setVerificationLoading] = useState(false);
 
   if (currentUser) {
     return (
@@ -104,6 +107,7 @@ export function SignupPage({ onNavigate, onRefreshDatabase, onLoginSuccess, curr
     email: string;
     role: UserRole;
     institution?: string;
+    token?: string;
   } | null>(null);
 
   const availableDomains = [
@@ -151,7 +155,6 @@ export function SignupPage({ onNavigate, onRefreshDatabase, onLoginSuccess, curr
     setLoading(true);
 
     try {
-      // POST directly to user registration endpoint which writes to data.json
       const res = await fetch("/api/users/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -179,18 +182,52 @@ export function SignupPage({ onNavigate, onRefreshDatabase, onLoginSuccess, curr
         throw new Error(resData.error || "Could not complete user registration.");
       }
 
-      setRegisteredUser(resData.user);
-      
-      // Refresh DB so any synced reviewers or state updates are loaded
-      await onRefreshDatabase();
-
-      setSuccess(true);
+      setVerificationCode("");
+      setAwaitingVerification(true);
     } catch (err: any) {
       console.error(err);
       setErrorMsg(err.message || "Registration server error. Please try again.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    if (verificationCode.length !== 6) {
+      setErrorMsg("Please enter the 6-digit verification code.");
+      return;
+    }
+    setVerificationLoading(true);
+    try {
+      const res = await fetch("/api/users/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          code: verificationCode,
+          role,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Invalid verification code.");
+      setRegisteredUser(data.user);
+      await onRefreshDatabase();
+      setAwaitingVerification(false);
+      setSuccess(true);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Unable to verify the code.");
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setAwaitingVerification(false);
+    setVerificationCode("");
+    setErrorMsg("");
+    await handleSignupSubmit({ preventDefault() {} } as React.FormEvent);
   };
 
   const handleAutoEnter = () => {
@@ -281,6 +318,44 @@ export function SignupPage({ onNavigate, onRefreshDatabase, onLoginSuccess, curr
                 </button>
               </div>
             </div>
+          ) : awaitingVerification ? (
+            <form onSubmit={handleVerifyRegistration} className="space-y-5 py-4">
+              <div className="text-center space-y-2">
+                <div className="mx-auto w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-900">Verify your email</h3>
+                <p className="text-xs text-slate-500">Enter the 6-digit code sent to <strong>{email.trim().toLowerCase()}</strong> to finish creating your account.</p>
+              </div>
+              {errorMsg && (
+                <div className="p-3 bg-red-50 border border-red-100 text-red-700 text-xs font-semibold rounded-lg flex items-start space-x-2">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+                className="w-full px-3 py-3 text-center text-lg tracking-[0.5em] border border-slate-200 rounded-lg outline-none focus:border-blue-500 font-semibold"
+                required
+              />
+              <button
+                type="submit"
+                disabled={verificationCode.length !== 6 || verificationLoading}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-xs font-semibold rounded-lg"
+              >
+                {verificationLoading ? "Verifying..." : "Verify & Create Account"}
+              </button>
+              <div className="flex justify-center gap-4 text-xs">
+                <button type="button" onClick={handleResendCode} disabled={loading} className="text-blue-600 font-semibold">Resend code</button>
+                <button type="button" onClick={() => { setAwaitingVerification(false); setErrorMsg(""); }} className="text-slate-500">Edit details</button>
+              </div>
+            </form>
           ) : (
             <form onSubmit={handleSignupSubmit} className="space-y-5">
               

@@ -1,4 +1,63 @@
 {
-  "conferences": [],
+  "conferences": [
+    {
+      "id": "conf-1789925445099",
+      "title": "Test Conference",
+      "date": "November 5, 2026",
+      "venue": "KU",
+      "deadline": "September 30, 2026",
+      "status": "Active",
+      "ticketTiers": [
+        {
+          "id": "tier-1789925445099-student",
+          "name": "Student Scholar Pass",
+          "price": 1500,
+          "currency": "NPR",
+          "description": "Subsidized pass for research students with institutional ID.",
+          "features": [
+            "Access to all technical sessions & poster tracks",
+            "Digital certificate of participation",
+            "Conference kit & symposium proceedings booklet",
+            "Lunch & refreshment passes"
+          ],
+          "recommendedGateway": "eSewa",
+          "badgeText": "Student Special",
+          "isPopular": false
+        },
+        {
+          "id": "tier-1789925445099-pro",
+          "name": "Professional & Faculty Pass",
+          "price": 3500,
+          "currency": "NPR",
+          "description": "Standard registration for university professors, research scholars, and industry delegates.",
+          "features": [
+            "Full access to keynote addresses & plenary panels",
+            "Indexed manuscript proceedings download",
+            "Gala dinner networking reception",
+            "Printed delegate kit & official badge"
+          ],
+          "recommendedGateway": "Khalti",
+          "badgeText": "Most Popular",
+          "isPopular": true
+        },
+        {
+          "id": "tier-1789925445099-intl",
+          "name": "International Delegate Pass",
+          "price": 50,
+          "currency": "USD",
+          "description": "Full conference & symposium access for overseas participants and foreign delegates.",
+          "features": [
+            "Full 3-day access to all events & workshops",
+            "Kathmandu Heritage cultural exchange reception",
+            "International author tax receipt & certificate",
+            "VIP networking banquet table"
+          ],
+          "recommendedGateway": "Stripe",
+          "badgeText": "Global Access",
+          "isPopular": false
+        }
+      ]
+    }
+  ],
   "schedule": []
 }

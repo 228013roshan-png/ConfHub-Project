@@ -745,11 +745,6 @@ export default function App() {
                     }`}>
                       {currentUser.role}
                     </span>
-                    {currentUser.token && (
-                      <span className="text-[9px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded hidden sm:inline-block" title={`User Token: ${currentUser.token}`}>
-                        Token: {currentUser.token.slice(0, 11)}...
-                      </span>
-                    )}
                   </div>
                   <span className="block text-[10px] text-slate-400 font-mono truncate max-w-[150px]">{currentUser.email}</span>
                 </div>

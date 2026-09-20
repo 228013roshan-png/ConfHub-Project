@@ -27,12 +27,12 @@ const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const [errorMsg, setErrorMsg] = useState("");
 const [loading, setLoading] = useState(false);
-
 const [requiresVerification, setRequiresVerification] = useState(false);
 const [verificationCode, setVerificationCode] = useState("");
-const [verificationEmail, setVerificationEmail] = useState("");
-const [verificationLoading, setVerificationLoading] = useState(false);
-const [resendLoading, setResendLoading] = useState(false);
+const verificationEmail = "";
+const verificationLoading = false;
+const resendLoading = false;
+
   if (currentUser) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col justify-center items-center p-4">
@@ -138,20 +138,13 @@ const [resendLoading, setResendLoading] = useState(false);
       );
     }
 
-    if (resData.requiresVerification) {
-      setVerificationEmail(
-        resData.email || email.trim().toLowerCase()
-      );
-
-      setVerificationCode("");
-      setRequiresVerification(true);
-
-      return;
-    }
-
-    throw new Error(
-      "Authentication verification was not started."
-    );
+    const authenticatedUser = resData.user;
+    onLoginSuccess({
+      name: authenticatedUser.name,
+      email: authenticatedUser.email.toLowerCase(),
+      role: authenticatedUser.role,
+      token: authenticatedUser.token || resData.token,
+    });
   } catch (err: any) {
     console.error("Login error:", err);
 
@@ -164,114 +157,13 @@ const [resendLoading, setResendLoading] = useState(false);
   }
 };
 
-const handleVerifyCode = async (
-  e: React.FormEvent
-) => {
+const handleVerifyCode = (e: React.FormEvent) => {
   e.preventDefault();
-
-  setErrorMsg("");
-
-  if (verificationCode.length !== 6) {
-    setErrorMsg(
-      "Please enter the 6-digit verification code."
-    );
-    return;
-  }
-
-  setVerificationLoading(true);
-
-  try {
-    const res = await fetch(
-      "/api/users/verify-code",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: verificationEmail,
-          code: verificationCode,
-          role,
-        }),
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(
-        data.error ||
-          "Invalid verification code."
-      );
-    }
-
-    const authenticatedUser = data.user;
-
-    onLoginSuccess({
-      name: authenticatedUser.name,
-      email: authenticatedUser.email.toLowerCase(),
-      role: authenticatedUser.role,
-      token:
-        authenticatedUser.token ||
-        data.token,
-    });
-  } catch (err: any) {
-    console.error(
-      "Verification error:",
-      err
-    );
-
-    setErrorMsg(
-      err.message ||
-        "Unable to verify the code."
-    );
-  } finally {
-    setVerificationLoading(false);
-  }
+  setErrorMsg("Email verification is completed during registration.");
 };
 
-const handleResendCode = async () => {
-  setErrorMsg("");
-  setResendLoading(true);
-
-  try {
-    const res = await fetch(
-      "/api/users/login",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password: password.trim(),
-          role,
-        }),
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(
-        data.error ||
-          "Unable to resend verification code."
-      );
-    }
-
-    setVerificationCode("");
-
-    setErrorMsg(
-      "A new verification code has been sent."
-    );
-  } catch (err: any) {
-    setErrorMsg(
-      err.message ||
-        "Unable to resend verification code."
-    );
-  } finally {
-    setResendLoading(false);
-  }
+const handleResendCode = () => {
+  setErrorMsg("Verification codes are only sent while creating an account.");
 };
 
   return (

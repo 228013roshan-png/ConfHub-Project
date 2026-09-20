@@ -1,3 +1,21 @@
 {
-  "papers": []
+  "papers": [
+    {
+      "id": "paper-1789925481992",
+      "conferenceId": "conf-1789925445099",
+      "title": "Test Paper",
+      "authorName": "Resuv Nepal",
+      "authorEmail": "resuvnepal@gmail.com",
+      "abstractText": "Studied test.",
+      "status": "Rejected",
+      "domainTags": [
+        "General Science"
+      ],
+      "assignedReviewerId": null,
+      "fileSize": "2.6 MB",
+      "submittedAt": "2026-09-20T17:31:21.992Z",
+      "rejectionReason": "Shit paper.",
+      "rejectedAt": "2026-09-20T17:32:34.093Z"
+    }
+  ]
 }
